@@ -1,6 +1,7 @@
 namespace MazeGenerator
 {
     //all cells have all walls initially - the walls are not rendered unless Visited is true
+    //NOTE: +x is right on the screen and +y is up on the screen. y is inverted when each cell is drawn
     public class MazeGrid
     {
         public static CellWallFlag[] Directions = new CellWallFlag[] {CellWallFlag.North, CellWallFlag.East, CellWallFlag.South, CellWallFlag.West};
@@ -22,11 +23,14 @@ namespace MazeGenerator
             this.Grid = new byte[width, height];
         }
 
+        public void MarkVisited(int x, int y)
+        {
+            this.Grid[x, y] |= 1;
+        }
+
         public void SetWallsToOff(int x, int y, byte wall)
         {
             this.Grid[x, y] |= wall;
-
-            //TODO set wall of adjacent cell in that direction to off too
         }
 
         public void SetWallsToOffAndUpdateAdjacent(int x, int y, byte wall)
@@ -45,11 +49,6 @@ namespace MazeGenerator
                     SetWallsToOff(x + directionArr[0], y + directionArr[1], GetOppositeSide((byte) direction));
                 }
             }
-
-            // if ((wall & (byte) CellWallFlag.North) > 0)
-            // {
-            //     SetWallsToOff(x, y + 1, (byte) CellWallFlag.South);
-            // }
         }
 
         public void SetWallsToOn(int x, int y, byte wall)
