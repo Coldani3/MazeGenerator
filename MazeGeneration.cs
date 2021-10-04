@@ -66,6 +66,50 @@ namespace MazeGenerator
 
                 this.MazeExit = coords;
             }
+
+            this.Visit(this.MazeEntrance[0], this.MazeEntrance[1]);
+
+            //begin generation
+
+            int[] currentCell = this.MazeEntrance;
+
+            while (this.Visited.Count > 0)
+            {
+                CellWallFlag direction = MazeGrid.Directions[this.RNG.Next(MazeGrid.Directions.Length - 1)];
+                int[] change = MazeGrid.GetXYChangeForDirection(direction);
+
+                int failedAttempts = 0;
+
+                //check and make sure coords are not out of the grid
+                while ((currentCell[0] + change[0]) < 0 || (currentCell[1] + change[1]) < 0 || 
+                    (currentCell[0] + change[0]) > this.Grid.Width - 1 || (currentCell[1] + change[1]) > this.Grid.Height - 1 ||
+                    this.Grid.IsVisited(currentCell[0] + change[0], currentCell[1] + change[1]))
+                {
+                    direction = MazeGrid.Directions[this.RNG.Next(MazeGrid.Directions.Length - 1)];
+                    change = MazeGrid.GetXYChangeForDirection(direction);
+                    failedAttempts += 1;
+                    if (failedAttempts >= 4)
+                    {
+                        this.Backtrack(currentCell[0], currentCell[1]);
+                    }
+                }
+
+                int[] nextCellCoords = new int[] {currentCell[0] + change[0], currentCell[1] + change[1]};
+                this.Visit(nextCellCoords[0], nextCellCoords[1]);
+                this.Grid.SetWallsToOffAndUpdateAdjacent(currentCell[0], currentCell[1], (byte) direction);
+                
+            }
+        }
+
+        public void Backtrack(int xFrom, int yFrom)
+        {
+
+        }
+
+        public void Visit(int x, int y)
+        {
+            this.Grid.MarkVisited(x, y);
+            this.Visited.Push(new int[] {x, y});
         }
 
         public int[] PickRandomCoord()

@@ -87,7 +87,7 @@ namespace MazeGenerator
             }
         }
 
-        public int[] GetXYChangeForDirection(CellWallFlag flag)
+        public static int[] GetXYChangeForDirection(CellWallFlag flag)
         {
             //x, y
             int[] change = new int[2] {0, 0};
