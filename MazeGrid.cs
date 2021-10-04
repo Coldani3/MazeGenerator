@@ -17,10 +17,18 @@ namespace MazeGenerator
         //32 - Has no Up wall
         //64 - Has no Down Wall
         public byte[,] Grid;
+        public int[] ExitCoords;
+        public int[] EntranceCoords;
+        public int Width {get; private set;}
+        public int Height {get; private set;}
 
-        public MazeGrid(int width, int height)
+        public MazeGrid(int width, int height, int[] entranceCoords, int[] exitCoords)
         {
+            this.EntranceCoords = entranceCoords;
+            this.ExitCoords = exitCoords;
             this.Grid = new byte[width, height];
+            this.Width = width;
+            this.Height = height;
         }
 
         public void MarkVisited(int x, int y)
@@ -44,6 +52,10 @@ namespace MazeGenerator
                 {
                     //get the cell in that direction
                     int[] directionArr = GetXYChangeForDirection(direction);
+
+                    //don't let it generate off the grid because that will cause errors
+                    if (directionArr[0] < 0 || directionArr[1] < 0) continue;
+
                     //and remove the wall opposite to the wall that was removed at x, y
                     //e.g if I remove the north one first, the one north to this cell will lose the south wall
                     SetWallsToOff(x + directionArr[0], y + directionArr[1], GetOppositeSide((byte) direction));
