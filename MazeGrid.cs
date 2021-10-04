@@ -113,5 +113,10 @@ namespace MazeGenerator
 
             return change;
         }
+
+        public bool IsVisited(int x, int y)
+        {
+            return (this.Grid[x, y] & 1) > 0;
+        }
     }
 }
