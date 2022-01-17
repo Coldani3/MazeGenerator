@@ -92,7 +92,14 @@ namespace MazeGenerator
 
                     if (failedAttempts >= 4)
                     {
-                        currentCell = this.Backtrack();
+                        int[] backtracked = this.Backtrack();
+
+                        if (backtracked.Length < 2)
+                        {
+                            goto done;
+                        }
+
+                        currentCell = backtracked;
                         failedAttempts = 0;
                     }
                 }
@@ -102,6 +109,13 @@ namespace MazeGenerator
                 this.Grid.SetWallsToOffAndUpdateAdjacent(currentCell[0], currentCell[1], (byte) direction);
                 
             }
+
+            done:
+                ;
+
+
+
+
         }
 
         public int[] Backtrack()
@@ -110,18 +124,27 @@ namespace MazeGenerator
             int[] prevCoords;
             int[] coords = new int[2];
 
-            prevCoords = this.Visited.Pop();
-
-            int[][] shuffledDirections = GetShuffledDirections();
-
-            for (int i = 0; i < MazeGrid.Directions.Length; i++)
+            //check to see if visited still has cells in it - if it's empty, we're done generating the maze
+            if (this.Visited.Count > 0)
             {
-                coords = new int[] {prevCoords[0] + shuffledDirections[i][0], prevCoords[1] + shuffledDirections[i][1]};
+                prevCoords = this.Visited.Pop();
 
-                if (CoordInBounds(coords[0], coords[1]) && !this.Grid.IsVisited(coords[0], coords[1])) 
+                int[][] shuffledDirections = GetShuffledDirections();
+
+                for (int i = 0; i < MazeGrid.Directions.Length; i++)
                 {
-                    return coords;
+                    coords = new int[] {prevCoords[0] + shuffledDirections[i][0], prevCoords[1] + shuffledDirections[i][1]};
+
+                    if (CoordInBounds(coords[0], coords[1]) && !this.Grid.IsVisited(coords[0], coords[1])) 
+                    {
+                        return coords;
+                    }
                 }
+            }
+            else
+            {
+                //1D mazes just kinda... don't exist, so return a single value to indicate the maze is done.
+                return new int[] {-1};
             }
 
             return this.Backtrack();
@@ -171,32 +194,32 @@ namespace MazeGenerator
             //3 = height - 1
             // if linePos > width + (height - 1)
             // x -= linePos - (width + (height - 1))
+            //x = (linePos on the x) - (linePos minus the sum of the width and height of the grid) clamped between the width and zero
             // x = Clamp(linePos, 0, width - 1) - Clamp((linePos - (width + (height - 1))), 0, width - 1)
             // y starts as 3
             // until end of bottom line
             // y = ((height - 1) - Clamp((linePos - (width - 1)), 0, height - 1)) + (Clamp((linePos - (((width - 1) * 2) + (height - 1))), 0, height - 1))
             //
 
+            int gridHeight = this.Grid.Height - 1;
+            int gridWidth = this.Grid.Width - 1;
+            
             int[] outCoords = new int[] {
                 //x
-                Math.Clamp(linePos, 0, this.Grid.Width - 1) - Math.Clamp(
-                                                                    linePos - (this.Grid.Width + (this.Grid.Height - 1)), 
+                Math.Clamp(linePos, 0, gridWidth) - Math.Clamp(
+                                                                    linePos - (this.Grid.Width + gridHeight), 
                                                                     0, 
-                                                                    this.Grid.Width - 1),
+                                                                    gridWidth),
                 //y
-                ((this.Grid.Height - 1) - Math.Clamp(
-                    linePos - (this.Grid.Width - 1),
-                    0,
-                    this.Grid.Height - 1
-                )) + (Math.Clamp(
+                (gridHeight - Math.Clamp(linePos - gridWidth, 0, gridHeight)) + (Math.Clamp(
                     linePos - (
                         (
-                            (this.Grid.Width - 1) * 2
+                            gridWidth * 2
                         ) + 
-                        (this.Grid.Height - 1)
+                        gridHeight
                     ),
                     0,
-                    this.Grid.Height - 1
+                    gridHeight
                 ))
             };
 

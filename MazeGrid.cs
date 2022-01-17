@@ -5,18 +5,20 @@ namespace MazeGenerator
     public class MazeGrid
     {
         public static CellWallFlag[] Directions = new CellWallFlag[] {CellWallFlag.North, CellWallFlag.East, CellWallFlag.South, CellWallFlag.West};
-        //each byte is a flag corresponding to if something is visited and if it lacks walls in that particular bit.
-        //this is done for performance reasons as having a large number of objects could be memory intensive
+        //each uint is a bit flag corresponding to if something is visited and if it lacks walls in that particular bit.
+        //could be done with bytes and stuff for memory efficiency but that limits what this can do
         //Bits:
         //1 - Visited
         //2 - Has no North wall (+0, +1)
-        //4 - Has no East wall (+1, +0)
-        //8 - Has no South wall (+0, -1)
+        //4 - Has no South wall (+0, -1)
+        //8 - Has no East wall (+1, +0)
         //16 - Has no West wall (-1, +0)
         //[UNIMPLEMENTED]
-        //32 - Has no Up wall
-        //64 - Has no Down Wall
-        public byte[,] Grid;
+        //32 - Has no Up wall [3D]
+        //64 - Has no Down Wall [3D]
+        //128 - Has no +w wall [4D]
+        //256 - Has no -w wall [4D]
+        public uint[,] Grid;
         public int[] ExitCoords;
         public int[] EntranceCoords;
         public int Width {get; private set;}
@@ -26,7 +28,7 @@ namespace MazeGenerator
         {
             this.EntranceCoords = entranceCoords;
             this.ExitCoords = exitCoords;
-            this.Grid = new byte[width, height];
+            this.Grid = new uint[width, height];
             this.Width = width;
             this.Height = height;
         }
@@ -36,19 +38,19 @@ namespace MazeGenerator
             this.Grid[x, y] |= 1;
         }
 
-        public void SetWallsToOff(int x, int y, byte wall)
+        public void SetWallsToOff(int x, int y, uint wall)
         {
             this.Grid[x, y] |= wall;
         }
 
-        public void SetWallsToOffAndUpdateAdjacent(int x, int y, byte wall)
+        public void SetWallsToOffAndUpdateAdjacent(int x, int y, uint wall)
         {
             SetWallsToOff(x, y, wall);
 
             foreach (CellWallFlag direction in Directions)
             {
                 //if the wall is being removed here
-                if ((wall & (byte) direction) > 0)
+                if ((wall & (uint) direction) > 0)
                 {
                     //get the cell in that direction
                     int[] directionArr = GetXYChangeForDirection(direction);
@@ -58,33 +60,35 @@ namespace MazeGenerator
 
                     //and remove the wall opposite to the wall that was removed at x, y
                     //e.g if I remove the north one first, the one north to this cell will lose the south wall
-                    SetWallsToOff(x + directionArr[0], y + directionArr[1], GetOppositeSide((byte) direction));
+                    SetWallsToOff(x + directionArr[0], y + directionArr[1], GetOppositeSide((uint) direction));
                 }
             }
         }
 
-        public void SetWallsToOn(int x, int y, byte wall)
+        public void SetWallsToOn(int x, int y, uint wall)
         {
-            //why do I need to cast this to a byte first? does the invert operator only return ints or something?
-            this.Grid[x, y] &= (byte) (~wall);
+            //why do I need to cast this to a uint first? does the invert operator only return ints or something?
+            this.Grid[x, y] &= (uint) (~wall);
         }
 
-        public bool DoWallsNotExist(int x, int y, byte wall)
+        public bool DoWallsNotExist(int x, int y, uint wall)
         {
             return (this.Grid[x, y] & wall) > 0;
         }
 
-        public byte GetOppositeSide(byte side)
+        public uint GetOppositeSide(uint side)
         {
+            //TODO: fixme because we made the bit flags more sane instead of NESW stuff
+
             // 4 < x < 32 = south and west - halving will get it to the opposite
-            if (side > 4)
-            {
-                return (byte) (side << 2);
-            }
-            else
-            {
-                return (byte) (side >> 2);
-            }
+            // if (side > 4)
+            // {
+            //     return (uint) (side << 2);
+            // }
+            // else
+            // {
+            //     return (uint) (side >> 2);
+            // }
         }
 
         public static int[] GetXYChangeForDirection(CellWallFlag flag)
