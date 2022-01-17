@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System;
 
 namespace MazeGenerator
@@ -80,17 +81,19 @@ namespace MazeGenerator
 
                 int failedAttempts = 0;
 
+                int[][] shuffledDirections = GetShuffledDirections();
+
                 //check and make sure coords are not out of the grid
-                while ((currentCell[0] + change[0]) < 0 || (currentCell[1] + change[1]) < 0 || 
-                    (currentCell[0] + change[0]) > this.Grid.Width - 1 || (currentCell[1] + change[1]) > this.Grid.Height - 1 ||
+                while (!this.CoordInBounds(currentCell[0] + change[0], currentCell[1] + change[1]) ||
                     this.Grid.IsVisited(currentCell[0] + change[0], currentCell[1] + change[1]))
                 {
-                    direction = MazeGrid.Directions[this.RNG.Next(MazeGrid.Directions.Length - 1)];
-                    change = MazeGrid.GetXYChangeForDirection(direction);
-                    failedAttempts += 1;
+                    change = shuffledDirections[failedAttempts];
+                    failedAttempts++;
+
                     if (failedAttempts >= 4)
                     {
-                        this.Backtrack(currentCell[0], currentCell[1]);
+                        currentCell = this.Backtrack();
+                        failedAttempts = 0;
                     }
                 }
 
@@ -101,9 +104,27 @@ namespace MazeGenerator
             }
         }
 
-        public void Backtrack(int xFrom, int yFrom)
+        public int[] Backtrack()
         {
+            Random rng = new Random();
+            int[] prevCoords;
+            int[] coords = new int[2];
 
+            prevCoords = this.Visited.Pop();
+
+            int[][] shuffledDirections = GetShuffledDirections();
+
+            for (int i = 0; i < MazeGrid.Directions.Length; i++)
+            {
+                coords = new int[] {prevCoords[0] + shuffledDirections[i][0], prevCoords[1] + shuffledDirections[i][1]};
+
+                if (CoordInBounds(coords[0], coords[1]) && !this.Grid.IsVisited(coords[0], coords[1])) 
+                {
+                    return coords;
+                }
+            }
+
+            return this.Backtrack();
         }
 
         public void Visit(int x, int y)
@@ -180,6 +201,16 @@ namespace MazeGenerator
             };
 
             return outCoords;
+        }
+
+        public bool CoordInBounds(int x, int y)
+        {
+            return x >= 0 || y >= 0 || x < this.Grid.Width - 1 || y < this.Grid.Height - 1;
+        }
+
+        public int[][] GetShuffledDirections()
+        {
+            return MazeGrid.Directions.OrderBy((x) => RNG.Next(2)).Select((x) => MazeGrid.GetXYChangeForDirection(x)).ToArray();
         }
     }
 }
