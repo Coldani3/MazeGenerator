@@ -4,7 +4,7 @@ namespace MazeGenerator
     //NOTE: +x is right on the screen and +y is up on the screen. y is inverted when each cell is drawn
     public class MazeGrid
     {
-        public static CellWallFlag[] Directions = new CellWallFlag[] {CellWallFlag.North, CellWallFlag.East, CellWallFlag.South, CellWallFlag.West};
+        public static CellWallFlag[] Directions = new CellWallFlag[] {CellWallFlag.North, CellWallFlag.East, CellWallFlag.South, CellWallFlag.West, CellWallFlag.Up, CellWallFlag.Down};
         //each uint is a bit flag corresponding to if something is visited and if it lacks walls in that particular bit.
         //could be done with bytes and stuff for memory efficiency but that limits what this can do
         //Bits:
@@ -19,15 +19,11 @@ namespace MazeGenerator
         //128 - Has no +w wall [4D]
         //256 - Has no -w wall [4D]
         public uint[,] Grid;
-        public int[] ExitCoords;
-        public int[] EntranceCoords;
         public int Width {get; private set;}
         public int Height {get; private set;}
 
-        public MazeGrid(int width, int height, int[] entranceCoords, int[] exitCoords)
+        public MazeGrid(int width, int height)
         {
-            this.EntranceCoords = entranceCoords;
-            this.ExitCoords = exitCoords;
             this.Grid = new uint[width, height];
             this.Width = width;
             this.Height = height;
@@ -76,10 +72,28 @@ namespace MazeGenerator
             return (this.Grid[x, y] & wall) > 0;
         }
 
-        public uint GetOppositeSide(uint side)
+        
+        public bool IsVisited(int x, int y)
         {
-            //TODO: fixme because we made the bit flags more sane instead of NESW stuff
+            return (this.Grid[x, y] & 1) > 0;
+        }
 
+        public static uint GetOppositeSide(uint side)
+        {
+            //roughly 10101010101010101010101 repeated for 64 bits (in case I make it a long for some insane reason). if you
+            //want the opposite it's literally the same but A instead of 5.
+
+            //check if it's a certain set of bits
+            if ((side & 0x5555555555555555) > 0)
+            {
+                //if it is, shift one way, getting the opposite
+                return side >> 1;
+            }
+            else
+            {
+                //otherwise shift the other way
+                return side << 1;
+            }
             // 4 < x < 32 = south and west - halving will get it to the opposite
             // if (side > 4)
             // {
@@ -93,6 +107,7 @@ namespace MazeGenerator
 
         public static int[] GetXYChangeForDirection(CellWallFlag flag)
         {
+            //TODO: higher dimensions
             //x, y
             int[] change = new int[2] {0, 0};
 
@@ -116,11 +131,6 @@ namespace MazeGenerator
             }
 
             return change;
-        }
-
-        public bool IsVisited(int x, int y)
-        {
-            return (this.Grid[x, y] & 1) > 0;
         }
     }
 }

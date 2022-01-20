@@ -4,7 +4,7 @@ using System;
 
 namespace MazeGenerator
 {
-    public class MazeGeneration
+    public class Maze
     {
         public MazeGrid Grid;
         private Stack<int[]> Visited = new Stack<int[]>();
@@ -15,7 +15,7 @@ namespace MazeGenerator
         public int[] MazeEntrance;
         public int[] MazeExit;
 
-        public MazeGeneration(MazeGrid grid, int? seed = null, bool allowNonWallEntrance=false, bool allowNonWallExit=false)
+        public Maze(MazeGrid grid, int? seed = null, bool allowNonWallEntrance=false, bool allowNonWallExit=false)
         {
             this.Grid = grid;
             this.AllowNonWallEntrance = allowNonWallEntrance;
@@ -40,7 +40,7 @@ namespace MazeGenerator
             }
             else
             {
-                this.MazeEntrance = SelectRandomEdgeOfMaze();   
+                this.MazeEntrance = this.SelectRandomEdgeOfMaze(this.Grid.Width, this.Grid.Height);   
             }
 
             if (this.AllowNonWallExit)
@@ -57,12 +57,12 @@ namespace MazeGenerator
             }
             else
             {
-                int[] coords = SelectRandomEdgeOfMaze();
+                int[] coords = this.SelectRandomEdgeOfMaze(this.Grid.Width, this.Grid.Height);
 
                 //prevent maze entrance from being the same as the exit
                 while (coords[0] == this.MazeEntrance[0] && coords[1] == this.MazeEntrance[1])
                 {
-                    coords = SelectRandomEdgeOfMaze();
+                    coords = this.SelectRandomEdgeOfMaze(this.Grid.Width, this.Grid.Height);
                 }
 
                 this.MazeExit = coords;
@@ -81,7 +81,7 @@ namespace MazeGenerator
 
                 int failedAttempts = 0;
 
-                int[][] shuffledDirections = GetShuffledDirections();
+                int[][] shuffledDirections = this.GetShuffledDirections();
 
                 //check and make sure coords are not out of the grid
                 while (!this.CoordInBounds(currentCell[0] + change[0], currentCell[1] + change[1]) ||
@@ -129,13 +129,13 @@ namespace MazeGenerator
             {
                 prevCoords = this.Visited.Pop();
 
-                int[][] shuffledDirections = GetShuffledDirections();
+                int[][] shuffledDirections = this.GetShuffledDirections();
 
                 for (int i = 0; i < MazeGrid.Directions.Length; i++)
                 {
                     coords = new int[] {prevCoords[0] + shuffledDirections[i][0], prevCoords[1] + shuffledDirections[i][1]};
 
-                    if (CoordInBounds(coords[0], coords[1]) && !this.Grid.IsVisited(coords[0], coords[1])) 
+                    if (this.CoordInBounds(coords[0], coords[1]) && !this.Grid.IsVisited(coords[0], coords[1])) 
                     {
                         return coords;
                     }
@@ -161,7 +161,7 @@ namespace MazeGenerator
             return new int[] {this.RNG.Next(this.Grid.Width - 1), this.RNG.Next(this.Grid.Height - 1)};
         }
 
-        public int[] SelectRandomEdgeOfMaze()
+        public int[] SelectRandomEdgeOfMaze(int width, int height)
         {
             //treat outside wall as a single continous line of length [height * 2 + width * 2 - 4] and cycle across it
             /*
@@ -176,7 +176,7 @@ namespace MazeGenerator
             -4 is due to the corners
             */
 
-            int linePos = this.RNG.Next((this.Grid.Width * 2) + (this.Grid.Height * 2) - 4);
+            int linePos = this.RNG.Next((width * 2) + (height * 2) - 4);
             //starting from top left corner increment x, after [width] then [height] is decreased
 
             //if i = 0 then cell is top left corner. if i = (width - 1) then top right
@@ -201,13 +201,13 @@ namespace MazeGenerator
             // y = ((height - 1) - Clamp((linePos - (width - 1)), 0, height - 1)) + (Clamp((linePos - (((width - 1) * 2) + (height - 1))), 0, height - 1))
             //
 
-            int gridHeight = this.Grid.Height - 1;
-            int gridWidth = this.Grid.Width - 1;
+            int gridHeight = height - 1;
+            int gridWidth = width - 1;
             
             int[] outCoords = new int[] {
                 //x
                 Math.Clamp(linePos, 0, gridWidth) - Math.Clamp(
-                                                                    linePos - (this.Grid.Width + gridHeight), 
+                                                                    linePos - (width + gridHeight), 
                                                                     0, 
                                                                     gridWidth),
                 //y
