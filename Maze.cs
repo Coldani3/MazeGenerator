@@ -14,6 +14,8 @@ namespace MazeGenerator
         private bool AllowNonWallExit;
         public int[] MazeEntrance;
         public int[] MazeExit;
+        //TODO: higher and lower dimensions
+        public int DirectionsCount = 4;
 
         public Maze(MazeGrid grid, int? seed = null, bool allowNonWallEntrance=false, bool allowNonWallExit=false)
         {
@@ -31,7 +33,7 @@ namespace MazeGenerator
             }
         }
 
-        public void Generate()
+        public Maze Generate()
         {
             //pick entrance and exit
             if (this.AllowNonWallEntrance)
@@ -90,7 +92,7 @@ namespace MazeGenerator
                     change = shuffledDirections[failedAttempts];
                     failedAttempts++;
 
-                    if (failedAttempts >= 4)
+                    if (failedAttempts >= this.DirectionsCount)
                     {
                         int[] backtracked = this.Backtrack();
 
@@ -115,7 +117,7 @@ namespace MazeGenerator
 
 
 
-
+            return this;
         }
 
         public int[] Backtrack()
@@ -144,6 +146,7 @@ namespace MazeGenerator
             else
             {
                 //1D mazes just kinda... don't exist, so return a single value to indicate the maze is done.
+                //TODO: something better and less hacky than this?
                 return new int[] {-1};
             }
 

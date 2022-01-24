@@ -4,7 +4,7 @@ namespace MazeGenerator
     //NOTE: +x is right on the screen and +y is up on the screen. y is inverted when each cell is drawn
     public class MazeGrid
     {
-        public static CellWallFlag[] Directions = new CellWallFlag[] {CellWallFlag.North, CellWallFlag.East, CellWallFlag.South, CellWallFlag.West, CellWallFlag.Up, CellWallFlag.Down};
+        public static CellWallFlag[] Directions = new CellWallFlag[] {CellWallFlag.North, CellWallFlag.South, CellWallFlag.East, CellWallFlag.West, CellWallFlag.Up, CellWallFlag.Down};
         //each uint is a bit flag corresponding to if something is visited and if it lacks walls in that particular bit.
         //could be done with bytes and stuff for memory efficiency but that limits what this can do
         //Bits:
@@ -18,7 +18,7 @@ namespace MazeGenerator
         //64 - Has no Down Wall [3D]
         //128 - Has no +w wall [4D]
         //256 - Has no -w wall [4D]
-        public uint[,] Grid;
+        private uint[,] Grid;
         public int Width {get; private set;}
         public int Height {get; private set;}
 
@@ -94,15 +94,6 @@ namespace MazeGenerator
                 //otherwise shift the other way
                 return side << 1;
             }
-            // 4 < x < 32 = south and west - halving will get it to the opposite
-            // if (side > 4)
-            // {
-            //     return (uint) (side << 2);
-            // }
-            // else
-            // {
-            //     return (uint) (side >> 2);
-            // }
         }
 
         public static int[] GetXYChangeForDirection(CellWallFlag flag)
@@ -131,6 +122,11 @@ namespace MazeGenerator
             }
 
             return change;
+        }
+
+        public uint this[int x, int y]
+        {
+            get {return this.Grid[x, y];}
         }
     }
 }
