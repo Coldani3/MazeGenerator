@@ -70,6 +70,7 @@ namespace MazeGenerator
         public bool DoWallsNotExist(int x, int y, uint wall)
         {
             //shift to right to eliminate the visited byte
+            //TODO: confirm if all of multiple bytes in wall exist
             return ((this.Grid[x, y] & wall) >> 1) > 0;
         }
 
