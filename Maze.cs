@@ -85,9 +85,12 @@ namespace MazeGenerator
 
                 int[][] shuffledDirections = this.GetShuffledDirections();
 
+                int changedX = currentCell[0] + change[0];
+                int changedY = currentCell[1] + change[1];
+
                 //check and make sure coords are not out of the grid
-                while (!this.CoordInBounds(currentCell[0] + change[0], currentCell[1] + change[1]) ||
-                    this.Grid.IsVisited(currentCell[0] + change[0], currentCell[1] + change[1]))
+                while (!this.Grid.CoordInBounds(changedX, changedY) ||
+                    this.Grid.IsVisited(changedX, changedY))
                 {
                     change = shuffledDirections[failedAttempts];
                     failedAttempts++;
@@ -108,14 +111,12 @@ namespace MazeGenerator
 
                 int[] nextCellCoords = new int[] {currentCell[0] + change[0], currentCell[1] + change[1]};
                 this.Visit(nextCellCoords[0], nextCellCoords[1]);
-                this.Grid.SetWallsToOffAndUpdateAdjacent(currentCell[0], currentCell[1], (byte) direction);
+                this.Grid.SetWallsToOffAndUpdateAdjacent(currentCell[0], currentCell[1], (uint) direction);
                 
             }
 
             done:
                 ;
-
-
 
             return this;
         }
@@ -137,7 +138,9 @@ namespace MazeGenerator
                 {
                     coords = new int[] {prevCoords[0] + shuffledDirections[i][0], prevCoords[1] + shuffledDirections[i][1]};
 
-                    if (this.CoordInBounds(coords[0], coords[1]) && !this.Grid.IsVisited(coords[0], coords[1])) 
+                    Console.WriteLine(coords[0] + ", " + coords[1]);
+
+                    if (this.Grid.CoordInBounds(coords[0], coords[1]) && !this.Grid.IsVisited(coords[0], coords[1])) 
                     {
                         return coords;
                     }
@@ -229,10 +232,7 @@ namespace MazeGenerator
             return outCoords;
         }
 
-        public bool CoordInBounds(int x, int y)
-        {
-            return x >= 0 || y >= 0 || x < this.Grid.Width - 1 || y < this.Grid.Height - 1;
-        }
+        
 
         public int[][] GetShuffledDirections()
         {
