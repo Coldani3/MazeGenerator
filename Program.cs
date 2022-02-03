@@ -52,23 +52,26 @@ namespace MazeGenerator
             char[] possibles = new char[] {'╝',	'╗', '╔', '╚', '╣', '╩', '╦', '╠', '═', '║' };
             uint walls = maze.Grid[x, y];
 
-            if (maze.Grid.DoWallsNotExist(x, y, AllDirections))
+            if (maze.Grid.DoAllWallsNotExist(x, y, AllDirections))
             {
                 return '╬';
             }
-            else if (!maze.Grid.DoWallsNotExist(x, y, AllDirections))
-            {
-                return '■';
-            }
+            // //if all of the walls exist
+            // else if (!maze.Grid.DoAnyWallsNotExist(x, y, AllDirections))
+            // {
+            //     return '■';
+            // }
 
             //narrow down char from directions as a workaround to there being no funny bit tricks
             for (int i = 0; i < Dimensions * 2; i++)
             {
-                if (maze.Grid.DoWallsNotExist(x, y, (uint) MazeGrid.Directions[i]))
+                if (maze.Grid.DoAllWallsNotExist(x, y, (uint) MazeGrid.Directions[i]))
                 {
                     possibles = possibles.Intersect(MazeChars[i]).ToArray();
                 }
             }
+
+            Console.Write("[" + possibles + "]");
 
             return possibles[0];
         }

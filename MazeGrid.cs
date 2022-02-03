@@ -67,11 +67,16 @@ namespace MazeGenerator
             this.Grid[x, y] &= (uint) (~wall);
         }
 
-        public bool DoWallsNotExist(int x, int y, uint wall)
+        public bool DoAnyWallsNotExist(int x, int y, uint wall)
         {
             //shift to right to eliminate the visited byte
-            //TODO: confirm if all of multiple bytes in wall exist
             return ((this.Grid[x, y] & wall) >> 1) > 0;
+        }
+
+        public bool DoAllWallsNotExist(int x, int y, uint wall)
+        {
+            //TODO: confirm if all of multiple bytes in wall exist
+            return (this.Grid[x, y] & wall) == wall; // > 0
         }
 
         public bool CoordInBounds(int x, int y)
