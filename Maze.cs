@@ -9,7 +9,6 @@ namespace MazeGenerator
         public MazeGrid Grid;
         private Stack<int[]> Visited = new Stack<int[]>();
         private Random RNG;
-        private byte CurrentCell;
         private bool AllowNonWallEntrance;
         private bool AllowNonWallExit;
         public int[] MazeEntrance;
@@ -123,6 +122,7 @@ namespace MazeGenerator
 
         public int[] Backtrack()
         {
+            Console.Write("backtrack");
             Random rng = new Random();
             int[] prevCoords;
             int[] coords = new int[2];

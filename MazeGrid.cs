@@ -1,3 +1,5 @@
+using System.Linq;
+
 namespace MazeGenerator
 {
     //all cells have all walls initially - the walls are not rendered unless Visited is true
@@ -19,14 +21,25 @@ namespace MazeGenerator
         //128 - Has no +w wall [4D]
         //256 - Has no -w wall [4D]
         private uint[,] Grid;
-        public int Width {get; private set;}
-        public int Height {get; private set;}
+        public int[] Sizes;
+        public int Width {get => this.Sizes[0];}
+        public int Height {get => this.Sizes[1];}
 
-        public MazeGrid(int width, int height)
+        //where sizes[n] is the dimension size of dimension 3+n given sizes is 0 indexed (first in sizes is 3D, second is 4D, etc.)
+        public MazeGrid(int width, int height, params int[] sizes)
         {
+            this.Sizes = new int[sizes.Length + 2];
+
+            this.Sizes[0] = width;
+            this.Sizes[1] = height;
+
+            for (int i = 0; i < sizes.Length; i++)
+            {
+                this.Sizes[i + 2] = sizes[i];
+            }
+
+            //TODO: higher dimensions
             this.Grid = new uint[width, height];
-            this.Width = width;
-            this.Height = height;
         }
 
         public void MarkVisited(int x, int y)
@@ -70,7 +83,7 @@ namespace MazeGenerator
         public bool DoAnyWallsNotExist(int x, int y, uint wall)
         {
             //shift to right to eliminate the visited byte
-            return ((this.Grid[x, y] & wall) >> 1) > 0;
+            return (this.Grid[x, y] & wall) > 0;
         }
 
         public bool DoAllWallsNotExist(int x, int y, uint wall)
@@ -79,15 +92,27 @@ namespace MazeGenerator
             return (this.Grid[x, y] & wall) == wall; // > 0
         }
 
-        public bool CoordInBounds(int x, int y)
+        public bool CoordInBounds(int x, int y, params int[] zWAndUp)
         {
-            return x >= 0 && y >= 0 && x < this.Width && y < this.Height;
+            if (x < 0 || x >= this.Width || y < 0 || y >= this.Height)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < zWAndUp.Length; i++)
+            {
+                if (zWAndUp[i] < 0 || zWAndUp[i] >= this.Sizes[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
         
         public bool IsVisited(int x, int y)
         {
-            
-            return (this.Grid[x, y] & 1) > 0;
+            return (this.Grid[x, y] & (uint) 1) > 0;
         }
 
         public static uint GetOppositeSide(uint side)
