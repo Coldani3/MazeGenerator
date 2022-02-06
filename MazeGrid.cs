@@ -82,7 +82,6 @@ namespace MazeGenerator
 
         public bool DoAnyWallsNotExist(int x, int y, uint wall)
         {
-            //shift to right to eliminate the visited byte
             return (this.Grid[x, y] & wall) > 0;
         }
 

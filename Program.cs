@@ -23,8 +23,6 @@ namespace MazeGenerator
 
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
-
             Testing();
             Console.ReadKey(true);
 
@@ -78,7 +76,13 @@ namespace MazeGenerator
                 // }
             }
 
-            Console.Write("[" + possibles.Length + "]");
+            if (possibles.Length > 1)
+            {
+                Console.Write("{");
+                possibles.ToList().ForEach(x => Console.Write("," + x));
+                Console.Write("[ " + possibles.Length + " ]");
+                Console.Write("}");
+            }
 
             return possibles[0];
         }
@@ -104,8 +108,8 @@ namespace MazeGenerator
 
             Console.WriteLine($"Testing if either the north or east walls do not exist (are 1): {testGrid.DoAnyWallsNotExist(0, 0, testNorthOrEastDNE)}, should be True");
             Console.WriteLine($"Testing if both the south and east walls do not exist (are 1): {testGrid.DoAllWallsNotExist(0, 0, testSouthEastDNE)}, should be True");
-            Console.WriteLine($"Testing if either the north and west walls do not exist (are 1): {testGrid.DoAnyWallsNotExist(0, 0, ~testSouthEastDNE)}, should be False");
-            Console.WriteLine($"Testing if both the north and west walls do not exist (are 1): {testGrid.DoAllWallsNotExist(0, 0, ~testSouthEastDNE)}, should be False");
+            Console.WriteLine($"Testing if either the north and west walls do not exist (are 1): {testGrid.DoAnyWallsNotExist(0, 0, ~testSouthEastDNE - 1)}, should be False");
+            Console.WriteLine($"Testing if both the north and west walls do not exist (are 1): {testGrid.DoAllWallsNotExist(0, 0, ~testSouthEastDNE - 1)}, should be False");
 
 
 
