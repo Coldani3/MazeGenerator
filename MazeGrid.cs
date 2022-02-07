@@ -47,14 +47,14 @@ namespace MazeGenerator
             this.Grid[x, y] |= 1;
         }
 
-        public void SetWallsToOff(int x, int y, uint wall)
+        public void SetDirectionsToAvailable(int x, int y, uint wall)
         {
             this.Grid[x, y] |= wall;
         }
 
-        public void SetWallsToOffAndUpdateAdjacent(int x, int y, uint wall)
+        public void SetDirectionsAvailableAndUpdateAdjacent(int x, int y, uint wall)
         {
-            SetWallsToOff(x, y, wall);
+            SetDirectionsToAvailable(x, y, wall);
 
             foreach (CellWallFlag direction in Directions)
             {
@@ -71,7 +71,7 @@ namespace MazeGenerator
                     //e.g if I remove the north one first, the one north to this cell will lose the south wall
                     if (this.CoordInBounds(x + directionArr[0], y + directionArr[1]))
                     {
-                        SetWallsToOff(x + directionArr[0], y + directionArr[1], GetOppositeSide((uint) direction));
+                        SetDirectionsToAvailable(x + directionArr[0], y + directionArr[1], GetOppositeSide((uint) direction));
                     }
                 }
             }
@@ -83,17 +83,17 @@ namespace MazeGenerator
             this.Grid[x, y] &= (uint) (~wall);
         }
 
-        public bool DoAnyWallsNotExist(int x, int y, uint wall)
+        public bool AreAnyDirectionsAvailable(int x, int y, uint wall)
         {
             return (this.Grid[x, y] & wall) > 0;
         }
 
-        public bool DoNoWallsNotExist(int x, int y)
+        public bool AreNoDirectionsAvailable(int x, int y)
         {
             return (this.Grid[x, y] >> 1) == 0;
         }
 
-        public bool DoAllWallsNotExist(int x, int y, uint wall)
+        public bool AreAllDirectionsAvailable(int x, int y, uint wall)
         {
             //TODO: confirm if all of multiple bytes in wall exist
             return (this.Grid[x, y] & wall) == wall; // > 0

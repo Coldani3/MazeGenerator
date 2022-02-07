@@ -114,12 +114,10 @@ namespace MazeGenerator
                 int[] nextCellCoords = new int[] {changedX, changedY};
                 Console.WriteLine($"current: X: {currentCell[0]} Y: {currentCell[1]}; next: X: {changedX} Y: {changedY}");
                 this.Visit(nextCellCoords[0], nextCellCoords[1]);
-                Console.WriteLine($"current2: X: {currentCell[0]} Y: {currentCell[1]}; next2: X: {changedX} Y: {changedY}");
-                this.Grid.SetWallsToOffAndUpdateAdjacent(currentCell[0], currentCell[1], (uint) direction);
+                this.Grid.SetDirectionsAvailableAndUpdateAdjacent(currentCell[0], currentCell[1], (uint) direction);
 
                 currentCell[0] = changedX;
                 currentCell[1] = changedY;
-                
             }
 
             done:
