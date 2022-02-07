@@ -63,7 +63,7 @@ namespace MazeGenerator
 
         static char GetMazeChar(int x, int y, Maze maze)
         {
-            char[] possibles = new char[] {'┘',	'┐', '┌', '└', '┤', '┴', '┬', '├', '─', '│' };
+            char[] possibles = new char[] {'╴', '╶', '╷', '╵','┘', '┐', '┌', '└', '┤', '┴', '┬', '├', '─', '│' };
             uint walls = maze.Grid[x, y];
 
             if (maze.Grid.AreAllDirectionsAvailable(x, y, AllDirections))
@@ -82,7 +82,7 @@ namespace MazeGenerator
             }
 
             //narrow down char from directions as a workaround to there being no funny bit tricks
-            for (int i = 0; i < Dimensions * 2; i++)
+            for (int i = 0; i < Dimensions * 2 && possibles.Length > 1; i++)
             {
                 if (!maze.Grid.AreAllDirectionsAvailable(x, y, (uint) MazeGrid.Directions[i]))
                 {
@@ -96,7 +96,6 @@ namespace MazeGenerator
                 if (possibles.Length == 1)
                 {
                     //Console.Write($"[{Convert.ToString(maze.Grid[x, y], 2)}]");
-                    break;
                 }
             }
 
