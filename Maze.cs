@@ -91,10 +91,8 @@ namespace MazeGenerator
                 while (!this.Grid.CoordInBounds(changedX, changedY) ||
                     this.Grid.IsVisited(changedX, changedY))
                 {
-                    change = shuffledDirections[failedAttempts];
-                    changedX = currentCell[0] + change[0];
-                    changedY = currentCell[1] + change[1];
-                    
+                    failedAttempts++;
+
                     if (failedAttempts >= this.DirectionsCount)
                     {
                         int[] backtracked = this.Backtrack();
@@ -108,13 +106,19 @@ namespace MazeGenerator
                         failedAttempts = 0;
                     }
 
-                    failedAttempts++;
-
+                    change = shuffledDirections[failedAttempts];
+                    changedX = currentCell[0] + change[0];
+                    changedY = currentCell[1] + change[1];
                 }
 
-                int[] nextCellCoords = new int[] {currentCell[0] + change[0], currentCell[1] + change[1]};
+                int[] nextCellCoords = new int[] {changedX, changedY};
+                Console.WriteLine($"current: X: {currentCell[0]} Y: {currentCell[1]}; next: X: {changedX} Y: {changedY}");
                 this.Visit(nextCellCoords[0], nextCellCoords[1]);
+                Console.WriteLine($"current2: X: {currentCell[0]} Y: {currentCell[1]}; next2: X: {changedX} Y: {changedY}");
                 this.Grid.SetWallsToOffAndUpdateAdjacent(currentCell[0], currentCell[1], (uint) direction);
+
+                currentCell[0] = changedX;
+                currentCell[1] = changedY;
                 
             }
 
@@ -144,7 +148,7 @@ namespace MazeGenerator
                 {
                     coords = new int[] {prevCoords[0] + shuffledDirections[i][0], prevCoords[1] + shuffledDirections[i][1]};
 
-                    Console.WriteLine(coords[0] + ", " + coords[1]);
+                    //Console.WriteLine(coords[0] + ", " + coords[1]);
 
                     if (this.Grid.CoordInBounds(coords[0], coords[1]) && !this.Grid.IsVisited(coords[0], coords[1])) 
                     {

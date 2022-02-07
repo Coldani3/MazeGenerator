@@ -69,7 +69,10 @@ namespace MazeGenerator
 
                     //and remove the wall opposite to the wall that was removed at x, y
                     //e.g if I remove the north one first, the one north to this cell will lose the south wall
-                    SetWallsToOff(x + directionArr[0], y + directionArr[1], GetOppositeSide((uint) direction));
+                    if (this.CoordInBounds(x + directionArr[0], y + directionArr[1]))
+                    {
+                        SetWallsToOff(x + directionArr[0], y + directionArr[1], GetOppositeSide((uint) direction));
+                    }
                 }
             }
         }
@@ -83,6 +86,11 @@ namespace MazeGenerator
         public bool DoAnyWallsNotExist(int x, int y, uint wall)
         {
             return (this.Grid[x, y] & wall) > 0;
+        }
+
+        public bool DoNoWallsNotExist(int x, int y)
+        {
+            return (this.Grid[x, y] >> 1) == 0;
         }
 
         public bool DoAllWallsNotExist(int x, int y, uint wall)
