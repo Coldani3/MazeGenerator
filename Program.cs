@@ -60,12 +60,15 @@ namespace MazeGenerator
 
         static void Render()
         {
-            Console.Write("╔" + new String('═', CurrentMaze.Grid.Width) + "╗\n║");
+            Console.Write("╔" + new String('═', CurrentMaze.Grid.Width) + "╗\n");
             
             char currChar;
 
             for (int y = 0; y < CurrentMaze.Grid.Height; y++)
             {
+                Console.SetCursorPosition(0, (CurrentMaze.Grid.Height) - y);
+                Console.Write('║');
+
                 for (int x = 0; x < CurrentMaze.Grid.Width; x++)
                 {
                     if (CurrentMaze.MazeEntrance[0] == x && CurrentMaze.MazeEntrance[1] == y)
@@ -86,12 +89,10 @@ namespace MazeGenerator
                     Console.ForegroundColor = ConsoleColor.White;
                 }
 
-                Console.Write("║\n║");
+                Console.Write("║\n");
             }
 
-            (int currX, int currY) = Console.GetCursorPosition();
-
-            Console.SetCursorPosition(0, currY);
+            Console.SetCursorPosition(0, (CurrentMaze.Grid.Height + 1));
             Console.Write("╚" + new String('═', CurrentMaze.Grid.Width) + "╝");
         }
 
