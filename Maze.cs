@@ -15,8 +15,9 @@ namespace MazeGenerator
         public int[] MazeExit;
         //TODO: higher and lower dimensions
         public int DirectionsCount = 4;
+        public Action Render = null;
 
-        public Maze(MazeGrid grid, int? seed = null, bool allowNonWallEntrance=false, bool allowNonWallExit=false)
+        public Maze(MazeGrid grid, int? seed=null, bool allowNonWallEntrance=false, bool allowNonWallExit=false)
         {
             this.Grid = grid;
             this.AllowNonWallEntrance = allowNonWallEntrance;
@@ -30,6 +31,12 @@ namespace MazeGenerator
             {
                 this.RNG = new Random();
             }
+        }
+
+        public Maze SetRenderer(Action render)
+        {
+            this.Render = render;
+            return this;
         }
 
         public Maze Generate()
@@ -77,12 +84,13 @@ namespace MazeGenerator
 
             while (this.Visited.Count > 0)
             {
-                CellWallFlag direction = MazeGrid.Directions[this.RNG.Next(MazeGrid.Directions.Length - 1)];
+                CellWallFlag direction = this.RandomDirection();
                 int[] change = MazeGrid.GetXYChangeForDirection(direction);
 
                 int failedAttempts = 0;
 
-                int[][] shuffledDirections = this.GetShuffledDirections();
+                CellWallFlag[] shuffledDirections = this.GetShuffledDirections();
+                int[][] shuffledDirectionChanges = this.GetDirectionChangesFromDirections(shuffledDirections);
 
                 int changedX = currentCell[0] + change[0];
                 int changedY = currentCell[1] + change[1];
@@ -106,31 +114,39 @@ namespace MazeGenerator
                         failedAttempts = 0;
                     }
 
-                    change = shuffledDirections[failedAttempts];
+                    direction = shuffledDirections[failedAttempts];
+                    change = shuffledDirectionChanges[failedAttempts];
                     changedX = currentCell[0] + change[0];
                     changedY = currentCell[1] + change[1];
                 }
 
                 int[] nextCellCoords = new int[] {changedX, changedY};
-                Console.WriteLine($"current: X: {currentCell[0]} Y: {currentCell[1]}; next: X: {changedX} Y: {changedY}");
+                Program.Debug($"current: X: {currentCell[0]} Y: {currentCell[1]}; next: X: {changedX} Y: {changedY}");
                 this.Visit(nextCellCoords[0], nextCellCoords[1]);
-                this.Grid.SetDirectionsAvailableAndUpdateAdjacent(currentCell[0], currentCell[1], (uint) direction);
+                //this.Grid.SetDirectionsAvailableAndUpdateAdjacent(currentCell[0], currentCell[1], (uint) direction);
+                this.Grid.SetDirectionsAvailableBetweenTwo(currentCell[0], currentCell[1], changedX, changedY, (uint) direction);
 
                 currentCell[0] = changedX;
                 currentCell[1] = changedY;
+                this?.Render();
             }
 
             done:
                 ;
             
-            Console.WriteLine("done genning");
+            Program.Debug("done genning");
 
             return this;
         }
 
+        public CellWallFlag RandomDirection()
+        {
+            return MazeGrid.Directions[this.RNG.Next(MazeGrid.Directions.Length - 1)];
+        }
+
         public int[] Backtrack()
         {
-            Console.Write("backtrack");
+            Program.Debug("backtrack");
             Random rng = new Random();
             int[] prevCoords;
             int[] coords = new int[2];
@@ -140,13 +156,11 @@ namespace MazeGenerator
             {
                 prevCoords = this.Visited.Pop();
 
-                int[][] shuffledDirections = this.GetShuffledDirections();
+                int[][] shuffledDirections = this.GetShuffledDirectionChanges();
 
                 for (int i = 0; i < MazeGrid.Directions.Length; i++)
                 {
                     coords = new int[] {prevCoords[0] + shuffledDirections[i][0], prevCoords[1] + shuffledDirections[i][1]};
-
-                    //Console.WriteLine(coords[0] + ", " + coords[1]);
 
                     if (this.Grid.CoordInBounds(coords[0], coords[1]) && !this.Grid.IsVisited(coords[0], coords[1])) 
                     {
@@ -175,6 +189,7 @@ namespace MazeGenerator
             return new int[] {this.RNG.Next(this.Grid.Width - 1), this.RNG.Next(this.Grid.Height - 1)};
         }
 
+        //well if this code isn't just an example of why you should follow KISS, I don't know what is
         public int[] SelectRandomEdgeOfMaze(int width, int height)
         {
             //treat outside wall as a single continous line of length [height * 2 + width * 2 - 4] and cycle across it
@@ -241,8 +256,17 @@ namespace MazeGenerator
         }
 
         
+        public CellWallFlag[] GetShuffledDirections()
+        {
+            return MazeGrid.Directions.OrderBy((x) => RNG.Next(2)).ToArray();
+        }
 
-        public int[][] GetShuffledDirections()
+        public int[][] GetDirectionChangesFromDirections(CellWallFlag[] flags)
+        {
+            return flags.Select((x) => MazeGrid.GetXYChangeForDirection(x)).ToArray();
+        }
+
+        public int[][] GetShuffledDirectionChanges()
         {
             return MazeGrid.Directions.OrderBy((x) => RNG.Next(2)).Select((x) => MazeGrid.GetXYChangeForDirection(x)).ToArray();
         }

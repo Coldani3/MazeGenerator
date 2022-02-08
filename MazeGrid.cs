@@ -6,7 +6,7 @@ namespace MazeGenerator
     //NOTE: +x is right on the screen and +y is up on the screen. y is inverted when each cell is drawn
     public class MazeGrid
     {
-        public static CellWallFlag[] Directions = new CellWallFlag[] {CellWallFlag.North, CellWallFlag.South, CellWallFlag.East, CellWallFlag.West, CellWallFlag.Up, CellWallFlag.Down};
+        public static CellWallFlag[] Directions = new CellWallFlag[] {CellWallFlag.North, CellWallFlag.South, CellWallFlag.East, CellWallFlag.West/*, CellWallFlag.Up, CellWallFlag.Down*/};
         //each uint is a bit flag corresponding to if something is visited and if it lacks walls in that particular bit.
         //could be done with bytes and stuff for memory efficiency but that limits what this can do
         //Bits:
@@ -50,6 +50,12 @@ namespace MazeGenerator
         public void SetDirectionsToAvailable(int x, int y, uint wall)
         {
             this.Grid[x, y] |= wall;
+        }
+
+        public void SetDirectionsAvailableBetweenTwo(int x1, int y1, int x2, int y2, uint direction1)
+        {
+            SetDirectionsToAvailable(x1, y1, direction1);
+            SetDirectionsToAvailable(x2, y2, GetOppositeSide(direction1));
         }
 
         public void SetDirectionsAvailableAndUpdateAdjacent(int x, int y, uint wall)
