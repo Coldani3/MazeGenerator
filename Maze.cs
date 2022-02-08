@@ -110,7 +110,9 @@ namespace MazeGenerator
                             goto done;
                         }
 
-                        currentCell = backtracked;
+                        currentCell[0] = backtracked[0];
+                        currentCell[1] = backtracked[1];
+                        this.Grid.SetDirectionsAvailableBetweenTwo(backtracked[0], backtracked[1], backtracked[2], backtracked[3], MazeGrid.GetOppositeSide((uint) backtracked[4]));
                         failedAttempts = 0;
                     }
 
@@ -156,11 +158,12 @@ namespace MazeGenerator
             {
                 prevCoords = this.Visited.Pop();
 
-                int[][] shuffledDirections = this.GetShuffledDirectionChanges();
+                CellWallFlag[] directions = this.GetShuffledDirections();
+                int[][] shuffledDirections = this.GetDirectionChangesFromDirections(directions);
 
                 for (int i = 0; i < MazeGrid.Directions.Length; i++)
                 {
-                    coords = new int[] {prevCoords[0] + shuffledDirections[i][0], prevCoords[1] + shuffledDirections[i][1]};
+                    coords = new int[] {prevCoords[0] + shuffledDirections[i][0], prevCoords[1] + shuffledDirections[i][1], prevCoords[0], prevCoords[1], (int) directions[i]};
 
                     if (this.Grid.CoordInBounds(coords[0], coords[1]) && !this.Grid.IsVisited(coords[0], coords[1])) 
                     {
