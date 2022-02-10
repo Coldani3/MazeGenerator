@@ -99,8 +99,6 @@ namespace MazeGenerator
                 while (!this.Grid.CoordInBounds(changedX, changedY) ||
                     this.Grid.IsVisited(changedX, changedY))
                 {
-                    failedAttempts++;
-
                     if (failedAttempts >= this.DirectionsCount)
                     {
                         int[] backtracked = this.Backtrack();
@@ -120,6 +118,7 @@ namespace MazeGenerator
                     change = shuffledDirectionChanges[failedAttempts];
                     changedX = currentCell[0] + change[0];
                     changedY = currentCell[1] + change[1];
+                    failedAttempts++;
                 }
 
                 int[] nextCellCoords = new int[] {changedX, changedY};
