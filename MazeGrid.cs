@@ -58,6 +58,11 @@ namespace MazeGenerator
         //where sizes[n] is the dimension size of dimension 3+n given sizes is 0 indexed (first in sizes is 3D, second is 4D, etc.)
         public MazeGrid(params int[] sizes)
         {
+            if (sizes.Length < 2)
+            {
+                throw new ArgumentException("Insufficient dimensions passed (you can't have a 1D maze)");
+            }
+
             this.Sizes = sizes;
 
             int size = 1;
