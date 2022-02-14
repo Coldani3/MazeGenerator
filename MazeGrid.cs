@@ -27,8 +27,30 @@ namespace MazeGenerator
         public int[] Sizes;
         public int Width {get => this.Sizes[0];}
         public int Height {get => this.Sizes[1];}
-        public int Depth {get => this.Sizes[2];}
-        public int HyperDepth {get => this.Sizes[3];}
+        public int Depth {
+            get {
+                if (this.Sizes.Length > 2) 
+                {
+                    return this.Sizes[2];
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+        }
+        public int HyperDepth {
+            get {
+                if (this.Sizes.Length > 3) 
+                {
+                    return this.Sizes[3];
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+        }
 
         //where sizes[n] is the dimension size of dimension 3+n given sizes is 0 indexed (first in sizes is 3D, second is 4D, etc.)
         public MazeGrid(int width, int height, params int[] sizes)
@@ -183,80 +205,38 @@ namespace MazeGenerator
             return change;
         }
 
-        public uint this[int x, int y]
+        public uint this[params int[] coords]
         {
             get {
-                if (x > this.Width - 1)
+                int[] fixedCoords = new int[4] {0, 0, 0, 0};
+
+                for (int i = 0; i < coords.Length; i++)
                 {
-                    throw new ArgumentOutOfRangeException("x", x, "x value passed to maze grid is out of range");
+                    if (coords[i] > this.Sizes[i]) 
+                    {
+                        throw new ArgumentOutOfRangeException($"{i}", coords[i], $"coordinate {i} is out of range");
+                    }
+
+                    fixedCoords[i] += coords[i];
                 }
 
-                if (y > this.Height - 1)
-                {
-                    throw new ArgumentOutOfRangeException("y", y, "y value passed to maze grid is out of range");
-                }
-
-                return this.Grid[((y + 1) * this.Height) - 
-                                (this.Width - (x + 1)) 
-                                - 1];
-            }
-
-            protected set {
-                if (x > this.Width - 1)
-                {
-                    throw new ArgumentOutOfRangeException("x", x, "x value passed to maze grid is out of range");
-                }
-
-                if (y > this.Height - 1)
-                {
-                    throw new ArgumentOutOfRangeException("y", y, "y value passed to maze grid is out of range");
-                }
-
-                this.Grid[((y + 1) * this.Height) - (this.Width - (x + 1)) - 1] = value;
-            }
-        }
-
-        public uint this[int x, int y, int z]
-        {
-            get {
-                if (x > this.Width - 1)
-                {
-                    throw new ArgumentOutOfRangeException("x", x, "x value passed to maze grid is out of range");
-                }
-
-                if (y > this.Height - 1)
-                {
-                    throw new ArgumentOutOfRangeException("y", y, "y value passed to maze grid is out of range");
-                }
-
-                if (z > this.Depth - 1)
-                {
-                    throw new ArgumentOutOfRangeException("z", z, "z value passed to maze grid is out of range");
-                }
-
-                return this.Grid[(this.Width * this.Height * z) +
-                                ((y + 1) * this.Height) - 
-                                (this.Width - (x + 1)) 
-                                - 1];
+                return this.Grid[(this.Height * this.Width * this.Depth * fixedCoords[3]) + (this.Height * this.Width * fixedCoords[2]) + (this.Height * fixedCoords[1]) + fixedCoords[0]];
             }
 
             set {
-                if (x > this.Width - 1)
+                int[] fixedCoords = new int[4] {0, 0, 0, 0};
+
+                for (int i = 0; i < coords.Length; i++)
                 {
-                    throw new ArgumentOutOfRangeException("x", x, "x value passed to maze grid is out of range");
+                    if (coords[i] > this.Sizes[i]) 
+                    {
+                        throw new ArgumentOutOfRangeException($"{i}", coords[i], $"coordinate {i} is out of range");
+                    }
+
+                    fixedCoords[i] += coords[i];
                 }
 
-                if (y > this.Height - 1)
-                {
-                    throw new ArgumentOutOfRangeException("y", y, "y value passed to maze grid is out of range");
-                }
-
-                if (z > this.Depth - 1)
-                {
-                    throw new ArgumentOutOfRangeException("z", z, "z value passed to maze grid is out of range");
-                }
-                
-                this.Grid[(this.Width * this.Height * z) + ((y + 1) * this.Height) - (this.Width - (x + 1)) - 1] = value;
+                this.Grid[(this.Height * this.Width * this.Depth * fixedCoords[3]) + (this.Height * this.Width * fixedCoords[2]) + (this.Height * fixedCoords[1]) + fixedCoords[0]] = value;
             }
         }
     }
