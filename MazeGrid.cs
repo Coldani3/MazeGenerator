@@ -1,4 +1,5 @@
 using System.Linq;
+using System;
 
 namespace MazeGenerator
 {
@@ -20,10 +21,14 @@ namespace MazeGenerator
         //64 - Has no Down Wall [3D]
         //128 - Has no +w wall [4D]
         //256 - Has no -w wall [4D]
-        private uint[,] Grid;
+        //indexing is computed as it goes so we can choose between dimensions
+        public uint[] Grid;
+        //private uint[,] Grid;
         public int[] Sizes;
         public int Width {get => this.Sizes[0];}
         public int Height {get => this.Sizes[1];}
+        public int Depth {get => this.Sizes[2];}
+        public int HyperDepth {get => this.Sizes[3];}
 
         //where sizes[n] is the dimension size of dimension 3+n given sizes is 0 indexed (first in sizes is 3D, second is 4D, etc.)
         public MazeGrid(int width, int height, params int[] sizes)
@@ -33,23 +38,27 @@ namespace MazeGenerator
             this.Sizes[0] = width;
             this.Sizes[1] = height;
 
+            int size = 1;
+
+            this.Sizes.ToList().ForEach(x => size *= x);
+
             for (int i = 0; i < sizes.Length; i++)
             {
                 this.Sizes[i + 2] = sizes[i];
             }
 
             //TODO: higher dimensions
-            this.Grid = new uint[width, height];
+            this.Grid = new uint[size];
         }
 
         public void MarkVisited(int x, int y)
         {
-            this.Grid[x, y] |= 1;
+            this[x, y] |= 1;
         }
 
         public void SetDirectionsToAvailable(int x, int y, uint wall)
         {
-            this.Grid[x, y] |= wall;
+            this[x, y] |= wall;
         }
 
         public void SetDirectionsAvailableBetweenTwo(int x1, int y1, int x2, int y2, uint direction1)
@@ -86,23 +95,23 @@ namespace MazeGenerator
         public void SetWallsToOn(int x, int y, uint wall)
         {
             //why do I need to cast this to a uint first? does the invert operator only return ints or something?
-            this.Grid[x, y] &= (uint) (~wall);
+            this[x, y] &= (uint) (~wall);
         }
 
         public bool AreAnyDirectionsAvailable(int x, int y, uint wall)
         {
-            return (this.Grid[x, y] & wall) > 0;
+            return (this[x, y] & wall) > 0;
         }
 
         public bool AreNoDirectionsAvailable(int x, int y)
         {
-            return (this.Grid[x, y] >> 1) == 0;
+            return (this[x, y] >> 1) == 0;
         }
 
         public bool AreAllDirectionsAvailable(int x, int y, uint wall)
         {
             //TODO: confirm if all of multiple bytes in wall exist
-            return (this.Grid[x, y] & wall) == wall; // > 0
+            return (this[x, y] & wall) == wall; // > 0
         }
 
         public bool CoordInBounds(int x, int y, params int[] zWAndUp)
@@ -125,7 +134,7 @@ namespace MazeGenerator
         
         public bool IsVisited(int x, int y)
         {
-            return (this.Grid[x, y] & (uint) 1) > 0;
+            return (this[x, y] & (uint) 1) > 0;
         }
 
         public static uint GetOppositeSide(uint side)
@@ -176,7 +185,79 @@ namespace MazeGenerator
 
         public uint this[int x, int y]
         {
-            get {return this.Grid[x, y];}
+            get {
+                if (x > this.Width - 1)
+                {
+                    throw new ArgumentOutOfRangeException("x", x, "x value passed to maze grid is out of range");
+                }
+
+                if (y > this.Height - 1)
+                {
+                    throw new ArgumentOutOfRangeException("y", y, "y value passed to maze grid is out of range");
+                }
+
+                return this.Grid[((y + 1) * this.Height) - 
+                                (this.Width - (x + 1)) 
+                                - 1];
+            }
+
+            protected set {
+                if (x > this.Width - 1)
+                {
+                    throw new ArgumentOutOfRangeException("x", x, "x value passed to maze grid is out of range");
+                }
+
+                if (y > this.Height - 1)
+                {
+                    throw new ArgumentOutOfRangeException("y", y, "y value passed to maze grid is out of range");
+                }
+
+                this.Grid[((y + 1) * this.Height) - (this.Width - (x + 1)) - 1] = value;
+            }
+        }
+
+        public uint this[int x, int y, int z]
+        {
+            get {
+                if (x > this.Width - 1)
+                {
+                    throw new ArgumentOutOfRangeException("x", x, "x value passed to maze grid is out of range");
+                }
+
+                if (y > this.Height - 1)
+                {
+                    throw new ArgumentOutOfRangeException("y", y, "y value passed to maze grid is out of range");
+                }
+
+                if (z > this.Depth - 1)
+                {
+                    throw new ArgumentOutOfRangeException("z", z, "z value passed to maze grid is out of range");
+                }
+
+                return this.Grid[(this.Width * this.Height * z) +
+                                ((y + 1) * this.Height) - 
+                                (this.Width - (x + 1)) 
+                                - 1];
+            }
+
+            set {
+                if (x > this.Width - 1)
+                {
+                    throw new ArgumentOutOfRangeException("x", x, "x value passed to maze grid is out of range");
+                }
+
+                if (y > this.Height - 1)
+                {
+                    throw new ArgumentOutOfRangeException("y", y, "y value passed to maze grid is out of range");
+                }
+
+                if (z > this.Depth - 1)
+                {
+                    throw new ArgumentOutOfRangeException("z", z, "z value passed to maze grid is out of range");
+                }
+                
+                this.Grid[(this.Width * this.Height * z) + ((y + 1) * this.Height) - (this.Width - (x + 1)) - 1] = value;
+            }
         }
     }
 }
