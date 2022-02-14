@@ -5,6 +5,10 @@ namespace MazeGenerator
 {
     //all cells have all walls initially - the walls are not rendered unless Visited is true
     //NOTE: +x is right on the screen and +y is up on the screen. y is inverted when each cell is drawn
+    /**
+     * The grid that actually stores the information. When dealing with coordinate array params, remember 
+     * that it will always go x, y, z, w, and then incrementally higher dimensions from there
+     */
     public class MazeGrid
     {
         public static CellWallFlag[] Directions = new CellWallFlag[] {CellWallFlag.North, CellWallFlag.South, CellWallFlag.East, CellWallFlag.West/*, CellWallFlag.Up, CellWallFlag.Down*/};
@@ -23,7 +27,6 @@ namespace MazeGenerator
         //256 - Has no -w wall [4D]
         //indexing is computed as it goes so we can choose between dimensions
         public uint[] Grid;
-        //private uint[,] Grid;
         public int[] Sizes;
         public int Width {get => this.Sizes[0];}
         public int Height {get => this.Sizes[1];}
@@ -53,29 +56,19 @@ namespace MazeGenerator
         }
 
         //where sizes[n] is the dimension size of dimension 3+n given sizes is 0 indexed (first in sizes is 3D, second is 4D, etc.)
-        public MazeGrid(int width, int height, params int[] sizes)
+        public MazeGrid(params int[] sizes)
         {
-            this.Sizes = new int[sizes.Length + 2];
-
-            this.Sizes[0] = width;
-            this.Sizes[1] = height;
+            this.Sizes = sizes;
 
             int size = 1;
 
             this.Sizes.ToList().ForEach(x => size *= x);
-
-            for (int i = 0; i < sizes.Length; i++)
-            {
-                this.Sizes[i + 2] = sizes[i];
-            }
-
-            //TODO: higher dimensions
             this.Grid = new uint[size];
         }
 
-        public void MarkVisited(int x, int y)
+        public void MarkVisited(params int[] coords)
         {
-            this[x, y] |= 1;
+            this[coords] |= 1;
         }
 
         public void SetDirectionsToAvailable(int x, int y, uint wall)
@@ -125,9 +118,9 @@ namespace MazeGenerator
             return (this[x, y] & wall) > 0;
         }
 
-        public bool AreNoDirectionsAvailable(int x, int y)
+        public bool AreNoDirectionsAvailable(params int[] coords)
         {
-            return (this[x, y] >> 1) == 0;
+            return (this[coords] >> 1) == 0;
         }
 
         public bool AreAllDirectionsAvailable(int x, int y, uint wall)
@@ -154,9 +147,9 @@ namespace MazeGenerator
             return true;
         }
         
-        public bool IsVisited(int x, int y)
+        public bool IsVisited(params int[] coords)
         {
-            return (this[x, y] & (uint) 1) > 0;
+            return (this[coords] & (uint) 1) > 0;
         }
 
         public static uint GetOppositeSide(uint side)
@@ -181,7 +174,7 @@ namespace MazeGenerator
         {
             //TODO: higher dimensions
             //x, y
-            int[] change = new int[2] {0, 0};
+            int[] change = new int[4] {0, 0, 0, 0};
 
             switch (flag)
             {
@@ -199,6 +192,22 @@ namespace MazeGenerator
 
                 case CellWallFlag.West:
                     change[0] = -1;
+                    break;
+                
+                case CellWallFlag.Up:
+                    change[2] = 1;
+                    break;
+
+                case CellWallFlag.Down:
+                    change[2] = -1;
+                    break;
+                
+                case CellWallFlag.Ana:
+                    change[3] = 1;
+                    break;
+
+                case CellWallFlag.Kata:
+                    change[3] = -1;
                     break;
             }
 
