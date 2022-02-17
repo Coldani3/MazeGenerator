@@ -1,5 +1,6 @@
 using System.Linq;
 using System;
+using System.Collections.Generic;
 
 namespace MazeGenerator
 {
@@ -63,11 +64,17 @@ namespace MazeGenerator
                 throw new ArgumentException("Insufficient dimensions passed (you can't have a 1D maze)");
             }
 
-            this.Sizes = sizes;
+            this.Sizes = ArrayOfMinSize(4, sizes);
 
             int size = 1;
 
-            this.Sizes.ToList().ForEach(x => size *= x);
+            this.Sizes.ToList().ForEach(x => {
+                if (x > 0)
+                {
+                    size *= x;
+                }
+            });
+            
             this.Grid = new uint[size];
         }
 
@@ -76,20 +83,20 @@ namespace MazeGenerator
             this[coords] |= 1;
         }
 
-        public void SetDirectionsToAvailable(int x, int y, uint wall)
+        public void SetDirectionsToAvailable(uint wall, params int[] coords)
         {
-            this[x, y] |= wall;
+            this[coords] |= wall;
         }
 
-        public void SetDirectionsAvailableBetweenTwo(int x1, int y1, int x2, int y2, uint direction1)
+        public void SetDirectionsAvailableBetweenTwo(uint direction1, int[] coords1, int[] coords2)
         {
-            SetDirectionsToAvailable(x1, y1, direction1);
-            SetDirectionsToAvailable(x2, y2, GetOppositeSide(direction1));
+            SetDirectionsToAvailable(direction1, coords1);
+            SetDirectionsToAvailable(GetOppositeSide(direction1), coords2);
         }
 
         public void SetDirectionsAvailableAndUpdateAdjacent(int x, int y, uint wall)
         {
-            SetDirectionsToAvailable(x, y, wall);
+            SetDirectionsToAvailable(wall, x, y);
 
             foreach (CellWallFlag direction in Directions)
             {
@@ -106,21 +113,21 @@ namespace MazeGenerator
                     //e.g if I remove the north one first, the one north to this cell will lose the south wall
                     if (this.CoordInBounds(x + directionArr[0], y + directionArr[1]))
                     {
-                        SetDirectionsToAvailable(x + directionArr[0], y + directionArr[1], GetOppositeSide((uint) direction));
+                        SetDirectionsToAvailable(GetOppositeSide((uint) direction), x + directionArr[0], y + directionArr[1]);
                     }
                 }
             }
         }
 
-        public void SetWallsToOn(int x, int y, uint wall)
+        public void SetWallsToOn(uint wall, params int[] coords)
         {
             //why do I need to cast this to a uint first? does the invert operator only return ints or something?
-            this[x, y] &= (uint) (~wall);
+            this[coords] &= (uint) (~wall);
         }
 
-        public bool AreAnyDirectionsAvailable(int x, int y, uint wall)
+        public bool AreAnyDirectionsAvailable(uint wall, params int[] coords)
         {
-            return (this[x, y] & wall) > 0;
+            return (this[coords] & wall) > 0;
         }
 
         public bool AreNoDirectionsAvailable(params int[] coords)
@@ -128,10 +135,10 @@ namespace MazeGenerator
             return (this[coords] >> 1) == 0;
         }
 
-        public bool AreAllDirectionsAvailable(int x, int y, uint wall)
+        public bool AreAllDirectionsAvailable(uint wall, params int[] coords)
         {
             //TODO: confirm if all of multiple bytes in wall exist
-            return (this[x, y] & wall) == wall; // > 0
+            return (this[coords] & wall) == wall; // > 0
         }
 
         public bool CoordInBounds(int x, int y, params int[] zWAndUp)
@@ -222,36 +229,35 @@ namespace MazeGenerator
         public uint this[params int[] coords]
         {
             get {
-                int[] fixedCoords = new int[4] {0, 0, 0, 0};
-
-                for (int i = 0; i < coords.Length; i++)
-                {
-                    if (coords[i] > this.Sizes[i]) 
-                    {
-                        throw new ArgumentOutOfRangeException($"{i}", coords[i], $"coordinate {i} is out of range");
-                    }
-
-                    fixedCoords[i] += coords[i];
-                }
+                int[] fixedCoords = ArrayOfMinSize(4, coords);
 
                 return this.Grid[(this.Height * this.Width * this.Depth * fixedCoords[3]) + (this.Height * this.Width * fixedCoords[2]) + (this.Height * fixedCoords[1]) + fixedCoords[0]];
             }
 
             set {
-                int[] fixedCoords = new int[4] {0, 0, 0, 0};
-
-                for (int i = 0; i < coords.Length; i++)
-                {
-                    if (coords[i] > this.Sizes[i]) 
-                    {
-                        throw new ArgumentOutOfRangeException($"{i}", coords[i], $"coordinate {i} is out of range");
-                    }
-
-                    fixedCoords[i] += coords[i];
-                }
+                int[] fixedCoords = ArrayOfMinSize(4, coords);
 
                 this.Grid[(this.Height * this.Width * this.Depth * fixedCoords[3]) + (this.Height * this.Width * fixedCoords[2]) + (this.Height * fixedCoords[1]) + fixedCoords[0]] = value;
             }
+        }
+
+        public static int[] ArrayOfMinSize(int size, params int[] values)
+        {
+            int[] ints = new int[size];
+
+            for (int i = 0; i < size; i++)
+            {
+                if (i < values.Length)
+                {
+                    ints[i] = values[i];
+                }
+                else
+                {
+                    ints[i] = 0;
+                }
+            }
+
+            return ints;
         }
     }
 }

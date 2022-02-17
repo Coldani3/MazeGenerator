@@ -110,7 +110,7 @@ namespace MazeGenerator
 
                         currentCell[0] = backtracked[0];
                         currentCell[1] = backtracked[1];
-                        this.Grid.SetDirectionsAvailableBetweenTwo(backtracked[0], backtracked[1], backtracked[2], backtracked[3], MazeGrid.GetOppositeSide((uint) backtracked[4]));
+                        this.Grid.SetDirectionsAvailableBetweenTwo(MazeGrid.GetOppositeSide((uint) backtracked[4]), new int[] {backtracked[0], backtracked[1]}, new int[] {backtracked[2], backtracked[3]});
                         failedAttempts = 0;
                     }
 
@@ -125,7 +125,7 @@ namespace MazeGenerator
                 Program.Debug($"current: X: {currentCell[0]} Y: {currentCell[1]}; next: X: {changedX} Y: {changedY}");
                 this.Visit(nextCellCoords[0], nextCellCoords[1]);
                 //this.Grid.SetDirectionsAvailableAndUpdateAdjacent(currentCell[0], currentCell[1], (uint) direction);
-                this.Grid.SetDirectionsAvailableBetweenTwo(currentCell[0], currentCell[1], changedX, changedY, (uint) direction);
+                this.Grid.SetDirectionsAvailableBetweenTwo((uint) direction, new int[] {currentCell[0], currentCell[1]}, new int[] { changedX, changedY});
 
                 currentCell[0] = changedX;
                 currentCell[1] = changedY;

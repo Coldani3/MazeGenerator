@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace MazeGenerator
 {
@@ -25,41 +26,89 @@ namespace MazeGenerator
             {ConstructWallDirectionsAvailableFlag(CellWallFlag.North, CellWallFlag.East), '└'},
             {ConstructWallDirectionsAvailableFlag(CellWallFlag.North, CellWallFlag.South, CellWallFlag.East, CellWallFlag.West), '┼'}
         };
+
+        public static Dictionary<uint, ConsoleColor> ColoursForHigherDims = new Dictionary<uint, ConsoleColor>() {
+            {0b000100000, ConsoleColor.Blue},
+            {0b001000000, ConsoleColor.DarkBlue},
+            {0b001100000, ConsoleColor.Yellow},
+            {0b010000000, ConsoleColor.Gray},
+            {0b100000000, ConsoleColor.DarkGray},
+            {0b110000000, ConsoleColor.Magenta},
+            {0, ConsoleColor.White}
+        };
         public static uint AllDirections = 0;
-        public static int Dimensions = 2;
+        public static int Dimensions = 4;
         public static int MazeWidth = 10;
         public static int MazeHeight = 10;
+        public static int MazeDepth = 4;
+        public static int MazeHyperDepth = 4;
         public static bool Debugging = false;
         public static bool StepThrough = true;
+        public static bool WaitForInput = true;
+        public static bool InputThreadActive = false;
+        public static bool Running = true;
+        public static int WaitTime = 50;
+        public static int[] HigherDimCoords = new int[] {0, 0};
         public static Maze CurrentMaze;
 
         static void Main(string[] args)
         {
             Console.OutputEncoding = System.Text.Encoding.UTF8;
-            Testing();
-            Console.ReadKey(true);
+            Console.CursorVisible = false;
+            // Testing();
+            // Console.ReadKey(true);
+
+            string dimensions = Console.ReadLine();
+
+            if (dimensions != "")
+            {
+                Dimensions = Int32.Parse(dimensions);
+            }
 
             //get total of all directions
             MazeGrid.Directions.Take(Dimensions * 2).ToList().ForEach(x => {AllDirections += (uint) x; });
 
+            Task inputTask = new Task(InputThread);
+            inputTask.Start();
+
             CurrentMaze = new Maze(new MazeGrid(MazeWidth, MazeHeight));
             if (StepThrough)
             {
-                CurrentMaze = CurrentMaze.SetRenderer(() => {
-                    Console.Clear();
-                    Render(); 
-                    Console.ReadKey(true);
-                    System.Threading.Thread.Sleep(100);
-                }).Generate();
+                CurrentMaze = CurrentMaze.SetRenderer(HandleRender).Generate();
             }
             else
             {
                 CurrentMaze = CurrentMaze.Generate();
             }
+
+            InputThreadActive = true;
+
+            while (Running)
+            {
+                HandleInput(Console.ReadKey(true));
+                Render();
+            }
+        }
+
+        static void HandleRender()
+        {
+            Render();
+
+            if (WaitForInput)
+            {
+                HandleInput(Console.ReadKey(true));
+            }
+            else if (!InputThreadActive)
+            {
+                InputThreadActive = true;
+            }
+
+            System.Threading.Thread.Sleep(WaitTime);
         }
 
         static void Render()
         {
+            Console.Clear();
             Console.Write("╔" + new String('═', CurrentMaze.Grid.Width) + "╗\n");
             
             char currChar;
@@ -71,6 +120,10 @@ namespace MazeGenerator
 
                 for (int x = 0; x < CurrentMaze.Grid.Width; x++)
                 {
+                    uint mazeBit = CurrentMaze.Grid[x, y, HigherDimCoords[0], HigherDimCoords[1]] & (0b111111110);
+
+                    char mazeChar = MazeChars[mazeBit];
+
                     if (CurrentMaze.MazeEntrance[0] == x && CurrentMaze.MazeEntrance[1] == y)
                     {
                         Console.ForegroundColor = ConsoleColor.Green;
@@ -81,11 +134,22 @@ namespace MazeGenerator
                         Console.ForegroundColor = ConsoleColor.Red;
                     }
 
-                    char mazeChar = MazeChars[CurrentMaze.Grid[x, y] & (0b11110)];
+                    Console.ForegroundColor = ColoursForHigherDims[mazeBit & 0b001100000];
+                    ConsoleColor background = ColoursForHigherDims[mazeBit & 0b110000000];
+                    Console.BackgroundColor = (background == ConsoleColor.White ? ConsoleColor.Black : background);
 
-                    //FIXME: console is upside down to the coordinates.
+                    if (CurrentMaze.MazeEntrance[0] == x && CurrentMaze.MazeEntrance[1] == y)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Green;
+                    }
+
+                    if (CurrentMaze.MazeExit[0] == x && CurrentMaze.MazeExit[1] == y)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                    }
+
                     Console.Write(mazeChar);
-                    //Console.Write(GetMazeChar(x, y, CurrentMaze));
+                    
                     Console.ForegroundColor = ConsoleColor.White;
                 }
 
@@ -113,15 +177,15 @@ namespace MazeGenerator
             uint testNorthOrEastDNE = ConstructWallDirectionsAvailableFlag(CellWallFlag.North, CellWallFlag.East);
             uint testSouthEastDNE = ConstructWallDirectionsAvailableFlag(CellWallFlag.South, CellWallFlag.East);
 
-            testGrid.SetDirectionsToAvailable(0, 0, twoDCell);
+            testGrid.SetDirectionsToAvailable(twoDCell, 0, 0);
 
             Console.WriteLine($"testNOrEDNE: {Convert.ToString(testNorthOrEastDNE, 2)}");
             Console.WriteLine($"testSEDNE: {Convert.ToString(testSouthEastDNE, 2)}");
 
-            Console.WriteLine($"Testing if either the north or east walls do not exist (are 1): {testGrid.AreAnyDirectionsAvailable(0, 0, testNorthOrEastDNE)}, should be True");
-            Console.WriteLine($"Testing if both the south and east walls do not exist (are 1): {testGrid.AreAllDirectionsAvailable(0, 0, testSouthEastDNE)}, should be True");
-            Console.WriteLine($"Testing if either the north and west walls do not exist (are 1): {testGrid.AreAnyDirectionsAvailable(0, 0, ~testSouthEastDNE - 1)}, should be False");
-            Console.WriteLine($"Testing if both the north and west walls do not exist (are 1): {testGrid.AreAllDirectionsAvailable(0, 0, ~testSouthEastDNE - 1)}, should be False");
+            Console.WriteLine($"Testing if either the north or east walls do not exist (are 1): {testGrid.AreAnyDirectionsAvailable(testNorthOrEastDNE, 0, 0)}, should be True");
+            Console.WriteLine($"Testing if both the south and east walls do not exist (are 1): {testGrid.AreAllDirectionsAvailable(testSouthEastDNE, 0, 0)}, should be True");
+            Console.WriteLine($"Testing if either the north and west walls do not exist (are 1): {testGrid.AreAnyDirectionsAvailable(~testSouthEastDNE - 1, 0, 0)}, should be False");
+            Console.WriteLine($"Testing if both the north and west walls do not exist (are 1): {testGrid.AreAllDirectionsAvailable(~testSouthEastDNE - 1, 0, 0)}, should be False");
             Console.WriteLine($"Testing if opposite directions are gotten properly: Opposite of {Convert.ToString(direction, 2)} is {Convert.ToString(MazeGrid.GetOppositeSide(direction), 2)}, should be {Convert.ToString(direction2, 2)}");
             Console.WriteLine($"Testing if opposite directions are gotten properly: Opposite of {Convert.ToString(direction2, 2)} is {Convert.ToString(MazeGrid.GetOppositeSide(direction2), 2)}, should be {Convert.ToString(direction, 2)}");
         }
@@ -147,6 +211,64 @@ namespace MazeGenerator
             // (int currLeft, int currTop) = Console.GetCursorPosition();
 
             // Console.SetCursorPosition(Console.WindowWidth - message.Length, Console.WindowHeight);
+        }
+
+        public static void InputThread()
+        {
+            while (true)
+            {
+                if (InputThreadActive) HandleInput(Console.ReadKey(true));
+            }
+        }
+
+        public static void HandleInput(ConsoleKeyInfo input)
+        {
+            int newCoord = 0;
+            switch (input.Key)
+            {
+                case ConsoleKey.A:
+                    WaitForInput = !WaitForInput;
+                    break;
+                
+                case ConsoleKey.RightArrow:
+                    newCoord = (HigherDimCoords[1] + 1);
+
+                    if (newCoord <= MazeDepth && newCoord >= 0)
+                    {
+                        HigherDimCoords[1] = newCoord;
+                    }
+                    break;
+
+                case ConsoleKey.LeftArrow:
+                    newCoord = (HigherDimCoords[1] - 1);
+
+                    if (newCoord <= MazeDepth && newCoord >= 0)
+                    {
+                        HigherDimCoords[1] = newCoord;
+                    }
+
+                    break;
+
+                case ConsoleKey.UpArrow:
+                    newCoord = (HigherDimCoords[0] + 1);
+
+                    if (newCoord <= MazeDepth && newCoord >= 0)
+                    {
+                        HigherDimCoords[0] = newCoord;
+                    }
+
+                    break;
+
+                case ConsoleKey.DownArrow:
+                    newCoord = (HigherDimCoords[0] - 1);
+
+                    if (newCoord <= MazeDepth && newCoord >= 0)
+                    {
+                        HigherDimCoords[0] = newCoord;
+                    }
+
+                    break;
+            }
         }
     }
 }
