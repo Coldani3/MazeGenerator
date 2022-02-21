@@ -42,7 +42,7 @@ namespace MazeGenerator
         public static int MazeHeight = 10;
         public static int MazeDepth = 4;
         public static int MazeHyperDepth = 4;
-        public static bool Debugging = false;
+        public static bool Debugging = true;
         public static bool StepThrough = true;
         public static bool WaitForInput = true;
         public static bool InputThreadActive = false;
@@ -50,6 +50,7 @@ namespace MazeGenerator
         public static int WaitTime = 50;
         public static int[] HigherDimCoords = new int[] {0, 0};
         public static Maze CurrentMaze;
+        private static List<string> DebugLog = new List<string>();
 
         static void Main(string[] args)
         {
@@ -206,11 +207,24 @@ namespace MazeGenerator
         {
             if (Debugging)
             {
-                Console.WriteLine(message);
-            }
-            // (int currLeft, int currTop) = Console.GetCursorPosition();
+                DebugLog.Add(message);
+                
+                string[] toPrint = DebugLog.TakeLast(5).ToArray();
+                int maxLength = toPrint.Max(x => x.Length);
 
-            // Console.SetCursorPosition(Console.WindowWidth - message.Length, Console.WindowHeight);
+                (int currLeft, int currTop) = Console.GetCursorPosition();
+
+                for (int i = 0; i < toPrint.Length; i++)
+                {
+                    Console.SetCursorPosition(Math.Clamp(Console.WindowWidth - maxLength, MazeWidth + 3, Console.WindowWidth), Console.WindowHeight - i);
+
+                    string trimmed = toPrint[i].Substring(0, Math.Clamp(Console.WindowWidth - (MazeWidth + 3), 0, toPrint[i].Length));
+
+                    Console.Write(toPrint[i] + new String(' ', (MazeWidth + 3) - toPrint[i].Length));
+                }
+
+                Console.SetCursorPosition(currLeft, currTop);
+            }
         }
 
         public static void InputThread()

@@ -122,7 +122,7 @@ namespace MazeGenerator
                 }
 
                 int[] nextCellCoords = new int[] {changedX, changedY};
-                Program.Debug($"current: X: {currentCell[0]} Y: {currentCell[1]}; next: X: {changedX} Y: {changedY}");
+                //Program.Debug($"current: X: {currentCell[0]} Y: {currentCell[1]}; next: X: {changedX} Y: {changedY}");
                 this.Visit(nextCellCoords[0], nextCellCoords[1]);
                 //this.Grid.SetDirectionsAvailableAndUpdateAdjacent(currentCell[0], currentCell[1], (uint) direction);
                 this.Grid.SetDirectionsAvailableBetweenTwo((uint) direction, new int[] {currentCell[0], currentCell[1]}, new int[] { changedX, changedY});
@@ -147,7 +147,6 @@ namespace MazeGenerator
 
         public int[] Backtrack()
         {
-            Program.Debug("backtrack");
             Random rng = new Random();
             int[] prevCoords;
             int[] coords = new int[2];
