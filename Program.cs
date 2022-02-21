@@ -36,8 +36,18 @@ namespace MazeGenerator
             {0b110000000, ConsoleColor.Magenta},
             {0, ConsoleColor.White}
         };
+        public static Dictionary<CellWallFlag, string> DirectionNames = new Dictionary<CellWallFlag, string>() {
+            {CellWallFlag.Up, "Up"},
+            {CellWallFlag.Down, "Down"},
+            {CellWallFlag.West, "West"},
+            {CellWallFlag.East, "East"},
+            {CellWallFlag.North, "North"},
+            {CellWallFlag.South, "South"},
+            {CellWallFlag.Ana, "Ana"},
+            {CellWallFlag.Kata, "Kata"},
+        };
         public static uint AllDirections = 0;
-        public static int Dimensions = 4;
+        public static int Dimensions = 2;
         public static int MazeWidth = 10;
         public static int MazeHeight = 10;
         public static int MazeDepth = 4;
@@ -159,6 +169,8 @@ namespace MazeGenerator
 
             Console.SetCursorPosition(0, (CurrentMaze.Grid.Height + 1));
             Console.Write("╚" + new String('═', CurrentMaze.Grid.Width) + "╝");
+
+            if (DebugLog.Count > 0) DisplayDebugLog();
         }
 
         static void Testing()
@@ -203,28 +215,33 @@ namespace MazeGenerator
             return output;
         }
 
-        public static void Debug(string message)
+        public static void Debug(string message, bool displayDebugLog=false)
         {
-            if (Debugging)
-            {
-                DebugLog.Add(message);
-                
-                string[] toPrint = DebugLog.TakeLast(5).ToArray();
-                int maxLength = toPrint.Max(x => x.Length);
+            DebugLog.Add(message);
 
-                (int currLeft, int currTop) = Console.GetCursorPosition();
-
-                for (int i = 0; i < toPrint.Length; i++)
-                {
-                    Console.SetCursorPosition(Math.Clamp(Console.WindowWidth - maxLength, MazeWidth + 3, Console.WindowWidth), Console.WindowHeight - i);
-
-                    string trimmed = toPrint[i].Substring(0, Math.Clamp(Console.WindowWidth - (MazeWidth + 3), 0, toPrint[i].Length));
-
-                    Console.Write(toPrint[i] + new String(' ', (MazeWidth + 3) - toPrint[i].Length));
-                }
-
-                Console.SetCursorPosition(currLeft, currTop);
+            if (Debugging && displayDebugLog)
+            {   
+                DisplayDebugLog();
             }
+        }
+
+        public static void DisplayDebugLog()
+        {
+            string[] toPrint = DebugLog.TakeLast(5).ToArray();
+            int maxLength = toPrint.Max(x => x.Length);
+
+            (int currLeft, int currTop) = Console.GetCursorPosition();
+
+            for (int i = 0; i < toPrint.Length; i++)
+            {
+                Console.SetCursorPosition(Math.Clamp(Console.WindowWidth - maxLength, MazeWidth + 3, Console.WindowWidth), Console.WindowHeight - i - 2);
+
+                string trimmed = toPrint[toPrint.Length - 1 - i].Substring(0, Math.Clamp(Console.WindowWidth - (MazeWidth + 3), 0, toPrint[toPrint.Length - 1 - i].Length));
+
+                Console.Write(trimmed + new String(' ', (Console.WindowWidth - (MazeWidth + 3)) - trimmed.Length));
+            }
+
+            Console.SetCursorPosition(currLeft, currTop);
         }
 
         public static void InputThread()
@@ -283,6 +300,11 @@ namespace MazeGenerator
 
                     break;
             }
+        }
+
+        public static string DirectionName(CellWallFlag direction)
+        {
+            return DirectionNames[direction];
         }
     }
 }

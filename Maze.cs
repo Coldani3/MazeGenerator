@@ -95,6 +95,7 @@ namespace MazeGenerator
                 int changedX = currentCell[0] + change[0];
                 int changedY = currentCell[1] + change[1];
 
+                //TODO: redo this, probably just iterate through every direction until you find a valid one.
                 //check and make sure coords are not out of the grid
                 while (!this.Grid.CoordInBounds(changedX, changedY) ||
                     this.Grid.IsVisited(changedX, changedY))
@@ -110,6 +111,9 @@ namespace MazeGenerator
 
                         currentCell[0] = backtracked[0];
                         currentCell[1] = backtracked[1];
+
+                        Program.Debug($"joining direction {Program.DirectionName((CellWallFlag) backtracked[4])}, coords: {backtracked[0]}, {backtracked[1]} and {backtracked[2]}, {backtracked[3]}");
+
                         this.Grid.SetDirectionsAvailableBetweenTwo(MazeGrid.GetOppositeSide((uint) backtracked[4]), new int[] {backtracked[0], backtracked[1]}, new int[] {backtracked[2], backtracked[3]});
                         failedAttempts = 0;
                     }
@@ -121,8 +125,45 @@ namespace MazeGenerator
                     failedAttempts++;
                 }
 
+                // bool foundFinal = true;
+
+                // if (!this.Grid.CoordInBounds(changedX, changedY) || this.Grid.IsVisited(changedX, changedY))
+                // {
+                //     bool found = false;
+
+                //     for (int i = 0; i < shuffledDirections.Length; i++)
+                //     {
+                //         direction = shuffledDirections[i];
+                //         change = shuffledDirectionChanges[i];
+                //         changedX = currentCell[0] + change[0];
+                //         changedY = currentCell[1] + change[1];
+
+                //         if (this.Grid.CoordInBounds(changedX, changedY) && !this.Grid.IsVisited(changedX, changedY))
+                //         {
+                //             found = true;
+                //         }
+                //     }
+
+                //     if (!found)
+                //     {
+                //         int[] backtracked = this.Backtrack();
+
+                //         if (backtracked.Length < 2)
+                //         {
+                //             goto done;
+                //         }
+
+                //         currentCell[0] = backtracked[0];
+                //         currentCell[1] = backtracked[1];
+
+                //         Program.Debug($"joining direction {Program.DirectionName((CellWallFlag) backtracked[4])}, coords: {backtracked[0]}, {backtracked[1]} and {backtracked[2]}, {backtracked[3]}");
+
+                //         this.Grid.SetDirectionsAvailableBetweenTwo(MazeGrid.GetOppositeSide((uint) backtracked[4]), new int[] {backtracked[0], backtracked[1]}, new int[] {backtracked[2], backtracked[3]});
+                //     }
+                // }
+
                 int[] nextCellCoords = new int[] {changedX, changedY};
-                //Program.Debug($"current: X: {currentCell[0]} Y: {currentCell[1]}; next: X: {changedX} Y: {changedY}");
+                Program.Debug($"current: X: {currentCell[0]} Y: {currentCell[1]}; next: X: {changedX} Y: {changedY}, direction: {Program.DirectionName(direction)}");
                 this.Visit(nextCellCoords[0], nextCellCoords[1]);
                 //this.Grid.SetDirectionsAvailableAndUpdateAdjacent(currentCell[0], currentCell[1], (uint) direction);
                 this.Grid.SetDirectionsAvailableBetweenTwo((uint) direction, new int[] {currentCell[0], currentCell[1]}, new int[] { changedX, changedY});
@@ -136,6 +177,7 @@ namespace MazeGenerator
                 ;
             
             Program.Debug("done genning");
+            Program.Debug($"entrance: {String.Join(", ", this.MazeEntrance)} exit: {String.Join(", ", this.MazeExit)}");
 
             return this;
         }
@@ -149,7 +191,7 @@ namespace MazeGenerator
         {
             Random rng = new Random();
             int[] prevCoords;
-            int[] coords = new int[2];
+            int[] coords = new int[Program.Dimensions];
 
             //check to see if visited still has cells in it - if it's empty, we're done generating the maze
             if (this.Visited.Count > 0)
@@ -159,7 +201,7 @@ namespace MazeGenerator
                 CellWallFlag[] directions = this.GetShuffledDirections();
                 int[][] shuffledDirections = this.GetDirectionChangesFromDirections(directions);
 
-                for (int i = 0; i < MazeGrid.Directions.Length; i++)
+                for (int i = 0; i < directions.Length; i++)
                 {
                     coords = new int[] {prevCoords[0] + shuffledDirections[i][0], prevCoords[1] + shuffledDirections[i][1], prevCoords[0], prevCoords[1], (int) directions[i]};
 
@@ -179,10 +221,10 @@ namespace MazeGenerator
             return this.Backtrack();
         }
 
-        public void Visit(int x, int y)
+        public void Visit(params int[] coords)
         {
-            this.Grid.MarkVisited(x, y);
-            this.Visited.Push(new int[] {x, y});
+            this.Grid.MarkVisited(coords);
+            this.Visited.Push(coords);
         }
 
         public int[] PickRandomCoord()
