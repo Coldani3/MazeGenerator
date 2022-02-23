@@ -83,6 +83,7 @@ namespace MazeGenerator
             inputTask.Start();
 
             CurrentMaze = new Maze(new MazeGrid(MazeWidth, MazeHeight));
+            
             if (StepThrough)
             {
                 CurrentMaze = CurrentMaze.SetRenderer(HandleRender).Generate();

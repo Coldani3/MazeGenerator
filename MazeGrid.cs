@@ -141,16 +141,11 @@ namespace MazeGenerator
             return (this[coords] & wall) == wall; // > 0
         }
 
-        public bool CoordInBounds(int x, int y, params int[] zWAndUp)
+        public bool CoordInBounds(params int[] coords)
         {
-            if (x < 0 || x >= this.Width || y < 0 || y >= this.Height)
+            for (int i = 0; i < coords.Length; i++)
             {
-                return false;
-            }
-
-            for (int i = 0; i < zWAndUp.Length; i++)
-            {
-                if (zWAndUp[i] < 0 || zWAndUp[i] >= this.Sizes[i])
+                if (coords[i] < 0 || coords[i] >= this.Sizes[i])
                 {
                     return false;
                 }
@@ -162,6 +157,11 @@ namespace MazeGenerator
         public bool IsVisited(params int[] coords)
         {
             return (this[coords] & (uint) 1) > 0;
+        }
+
+        public bool IsValidAndNotVisited(params int[] coords)
+        {
+            return this.CoordInBounds(coords) && !this.IsVisited(coords);
         }
 
         public static uint GetOppositeSide(uint side)

@@ -97,54 +97,10 @@ namespace MazeGenerator
 
                 //TODO: redo this, probably just iterate through every direction until you find a valid one.
                 //check and make sure coords are not out of the grid
-                while (!this.Grid.CoordInBounds(changedX, changedY) ||
-                    this.Grid.IsVisited(changedX, changedY))
-                {
-                    if (failedAttempts >= this.DirectionsCount)
-                    {
-                        int[] backtracked = this.Backtrack();
-
-                        if (backtracked.Length < 2)
-                        {
-                            goto done;
-                        }
-
-                        currentCell[0] = backtracked[0];
-                        currentCell[1] = backtracked[1];
-
-                        Program.Debug($"joining direction {Program.DirectionName((CellWallFlag) backtracked[4])}, coords: {backtracked[0]}, {backtracked[1]} and {backtracked[2]}, {backtracked[3]}");
-
-                        this.Grid.SetDirectionsAvailableBetweenTwo(MazeGrid.GetOppositeSide((uint) backtracked[4]), new int[] {backtracked[0], backtracked[1]}, new int[] {backtracked[2], backtracked[3]});
-                        failedAttempts = 0;
-                    }
-
-                    direction = shuffledDirections[failedAttempts];
-                    change = shuffledDirectionChanges[failedAttempts];
-                    changedX = currentCell[0] + change[0];
-                    changedY = currentCell[1] + change[1];
-                    failedAttempts++;
-                }
-
-                // bool foundFinal = true;
-
-                // if (!this.Grid.CoordInBounds(changedX, changedY) || this.Grid.IsVisited(changedX, changedY))
+                // while (!this.Grid.CoordInBounds(changedX, changedY) ||
+                //     this.Grid.IsVisited(changedX, changedY))
                 // {
-                //     bool found = false;
-
-                //     for (int i = 0; i < shuffledDirections.Length; i++)
-                //     {
-                //         direction = shuffledDirections[i];
-                //         change = shuffledDirectionChanges[i];
-                //         changedX = currentCell[0] + change[0];
-                //         changedY = currentCell[1] + change[1];
-
-                //         if (this.Grid.CoordInBounds(changedX, changedY) && !this.Grid.IsVisited(changedX, changedY))
-                //         {
-                //             found = true;
-                //         }
-                //     }
-
-                //     if (!found)
+                //     if (failedAttempts >= this.DirectionsCount)
                 //     {
                 //         int[] backtracked = this.Backtrack();
 
@@ -159,14 +115,57 @@ namespace MazeGenerator
                 //         Program.Debug($"joining direction {Program.DirectionName((CellWallFlag) backtracked[4])}, coords: {backtracked[0]}, {backtracked[1]} and {backtracked[2]}, {backtracked[3]}");
 
                 //         this.Grid.SetDirectionsAvailableBetweenTwo(MazeGrid.GetOppositeSide((uint) backtracked[4]), new int[] {backtracked[0], backtracked[1]}, new int[] {backtracked[2], backtracked[3]});
+                //         failedAttempts = 0;
                 //     }
+
+                //     direction = shuffledDirections[failedAttempts];
+                //     change = shuffledDirectionChanges[failedAttempts];
+                //     changedX = currentCell[0] + change[0];
+                //     changedY = currentCell[1] + change[1];
+                //     failedAttempts++;
                 // }
 
+                if (!this.Grid.IsValidAndNotVisited(changedX, changedY))
+                {
+                    bool found = false;
+
+                    do
+                    {
+                        for (int i = 0; i < shuffledDirections.Length; i++)
+                        {
+                            direction = shuffledDirections[i];
+                            change = shuffledDirectionChanges[i];
+                            changedX = currentCell[0] + change[0];
+                            changedY = currentCell[1] + change[1];
+
+                            if (this.Grid.IsValidAndNotVisited(changedX, changedY))
+                            {
+                                Program.Debug($"found valid coord at {changedX}, {changedY}");
+                                found = true;
+                            }
+                        }
+
+                        if (!found)
+                        {
+                            int[] backtracked = this.Backtrack();
+
+                            if (backtracked.Length < 2)
+                            {
+                                goto done;
+                            }
+
+                            currentCell[0] = backtracked[0];
+                            currentCell[1] = backtracked[1];
+                        }
+                    }
+                    while (!found);
+                }
+
                 int[] nextCellCoords = new int[] {changedX, changedY};
-                Program.Debug($"current: X: {currentCell[0]} Y: {currentCell[1]}; next: X: {changedX} Y: {changedY}, direction: {Program.DirectionName(direction)}");
-                this.Visit(nextCellCoords[0], nextCellCoords[1]);
+                Program.Debug($"current: X: {currentCell[0]} Y: {currentCell[1]} (V: {this.Grid.IsVisited(currentCell)}, I: {this.Grid.CoordInBounds(currentCell)} (!V)I: {this.Grid.IsValidAndNotVisited(currentCell)}); next: X: {changedX} Y: {changedY} (V: {this.Grid.IsVisited(currentCell)}, I: {this.Grid.CoordInBounds(currentCell)} (!V)I: {this.Grid.IsValidAndNotVisited(currentCell)}), direction: {Program.DirectionName(direction)}".Replace("True", "Y").Replace("False", "N"));
+                this.Visit(nextCellCoords);
                 //this.Grid.SetDirectionsAvailableAndUpdateAdjacent(currentCell[0], currentCell[1], (uint) direction);
-                this.Grid.SetDirectionsAvailableBetweenTwo((uint) direction, new int[] {currentCell[0], currentCell[1]}, new int[] { changedX, changedY});
+                this.Grid.SetDirectionsAvailableBetweenTwo((uint) direction, currentCell, nextCellCoords);
 
                 currentCell[0] = changedX;
                 currentCell[1] = changedY;
