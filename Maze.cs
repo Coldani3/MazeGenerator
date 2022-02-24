@@ -131,7 +131,9 @@ namespace MazeGenerator
 
                     do
                     {
-                        for (int i = 0; i < shuffledDirections.Length; i++)
+                        found = false;
+
+                        for (int i = 0; i < shuffledDirections.Length && !found; i++)
                         {
                             direction = shuffledDirections[i];
                             change = shuffledDirectionChanges[i];
@@ -140,7 +142,7 @@ namespace MazeGenerator
 
                             if (this.Grid.IsValidAndNotVisited(changedX, changedY))
                             {
-                                Program.Debug($"found valid coord at {changedX}, {changedY}");
+                                Program.Debug($"found valid coord at {changedX}, {changedY} (I:{this.Grid.CoordInBounds(changedX, changedY)} V:{this.Grid.IsVisited(changedX, changedY)})");
                                 found = true;
                             }
                         }
@@ -154,8 +156,19 @@ namespace MazeGenerator
                                 goto done;
                             }
 
-                            currentCell[0] = backtracked[0];
-                            currentCell[1] = backtracked[1];
+                            changedX = backtracked[0];
+                            changedY = backtracked[1];
+                            currentCell[0] = backtracked[2];
+                            currentCell[1] = backtracked[3];
+
+                            Program.Debug($"backtracked to X:{currentCell[0]} Y:{currentCell[1]}");
+
+                            if (this.Grid.IsValidAndNotVisited(changedX, changedY))
+                            {
+                                Program.Debug($"backtracked and found valid coord at {changedX}, {changedY} (I:{this.Grid.CoordInBounds(changedX, changedY)} V:{this.Grid.IsVisited(changedX, changedY)})");
+                                direction = (CellWallFlag) backtracked[4];
+                                found = true;
+                            }
                         }
                     }
                     while (!found);

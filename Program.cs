@@ -53,6 +53,7 @@ namespace MazeGenerator
         public static int MazeDepth = 4;
         public static int MazeHyperDepth = 4;
         public static bool Debugging = true;
+        public static int DebugLogSize = 15;
         public static bool StepThrough = true;
         public static bool WaitForInput = true;
         public static bool InputThreadActive = false;
@@ -228,7 +229,7 @@ namespace MazeGenerator
 
         public static void DisplayDebugLog()
         {
-            string[] toPrint = DebugLog.TakeLast(5).ToArray();
+            string[] toPrint = DebugLog.TakeLast(DebugLogSize).ToArray();
             int maxLength = toPrint.Max(x => x.Length);
 
             (int currLeft, int currTop) = Console.GetCursorPosition();
