@@ -7,6 +7,26 @@ namespace MazeGenerator
 {
     class Program
     {
+        public static uint AllDirections = 0;
+        public static int Dimensions = 2;
+        public static int MazeWidth = 10;
+        public static int MazeHeight = 10;
+        public static int MazeDepth = 4;
+        public static int MazeHyperDepth = 4;
+        public static int MinDistanceBetweenEntranceAndExit = 5;
+        public static bool Running = true;
+        public static int[] HigherDimCoords = new int[] {0, 0};
+        public static Maze CurrentMaze;
+        
+
+#region Debug and Rendering stuff
+        public static bool Debugging = true;
+        public static int DebugLogSize = 15;
+        public static bool StepThrough = true;
+        public static bool WaitForInput = true;
+        public static bool InputThreadActive = false;
+        public static int WaitTime = 50;
+        private static List<string> DebugLog = new List<string>();
         //there are unfortunately no fancy bit tricks to get the right ones, so we're doing a lookup thing
         public static Dictionary<uint, char> MazeChars = new Dictionary<uint, char>() {
             {0, '■'},
@@ -46,22 +66,7 @@ namespace MazeGenerator
             {CellWallFlag.Ana, "Ana"},
             {CellWallFlag.Kata, "Kata"},
         };
-        public static uint AllDirections = 0;
-        public static int Dimensions = 2;
-        public static int MazeWidth = 10;
-        public static int MazeHeight = 10;
-        public static int MazeDepth = 4;
-        public static int MazeHyperDepth = 4;
-        public static bool Debugging = true;
-        public static int DebugLogSize = 15;
-        public static bool StepThrough = true;
-        public static bool WaitForInput = true;
-        public static bool InputThreadActive = false;
-        public static bool Running = true;
-        public static int WaitTime = 50;
-        public static int[] HigherDimCoords = new int[] {0, 0};
-        public static Maze CurrentMaze;
-        private static List<string> DebugLog = new List<string>();
+#endregion
 
         static void Main(string[] args)
         {
@@ -84,6 +89,8 @@ namespace MazeGenerator
             inputTask.Start();
 
             CurrentMaze = new Maze(new MazeGrid(MazeWidth, MazeHeight));
+
+            CurrentMaze.SetDebug(Debug);
             
             if (StepThrough)
             {
@@ -225,6 +232,11 @@ namespace MazeGenerator
             {   
                 DisplayDebugLog();
             }
+        }
+
+        public static void Debug(string message) 
+        {
+            Debug(message, false);
         }
 
         public static void DisplayDebugLog()

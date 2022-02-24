@@ -29,6 +29,7 @@ namespace MazeGenerator
         //indexing is computed as it goes so we can choose between dimensions
         public uint[] Grid;
         public int[] Sizes;
+        public int Dimensions {get => this.Sizes.Length;}
         public int Width {get => this.Sizes[0];}
         public int Height {get => this.Sizes[1];}
         public int Depth {
