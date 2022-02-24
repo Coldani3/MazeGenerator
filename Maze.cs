@@ -204,7 +204,7 @@ namespace MazeGenerator
                 {
                     coords = new int[] {prevCoords[0] + shuffledDirections[i][0], prevCoords[1] + shuffledDirections[i][1], prevCoords[0], prevCoords[1], (int) directions[i]};
 
-                    if (this.Grid.CoordInBounds(coords[0], coords[1]) && !this.Grid.IsVisited(coords[0], coords[1])) 
+                    if (this.Grid.IsValidAndNotVisited(coords[0], coords[1])) 
                     {
                         return coords;
                     }
