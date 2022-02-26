@@ -187,7 +187,7 @@ namespace MazeGenerator
 
         public CellWallFlag RandomDirection()
         {
-            return MazeGrid.Directions[this.RNG.Next(MazeGrid.Directions.Length - 1)];
+            return this.Grid.Directions[this.RNG.Next(this.Grid.Directions.Length - 1)];
         }
 
         public int[] Backtrack()
@@ -230,6 +230,11 @@ namespace MazeGenerator
             this.Visited.Push(coords);
         }
 
+        public void WriteToFile(string fileName)
+        {
+
+        }
+
         public int[] PickRandomCoord()
         {
             return new int[] {this.RNG.Next(this.Grid.Width - 1), this.RNG.Next(this.Grid.Height - 1)};
@@ -238,72 +243,17 @@ namespace MazeGenerator
         //horrid math abomination that appears to spit in the face of KISS. I think I was trying to be performance efficient? in something only run like 4 times? w/e it works
         public int[] SelectRandomEdgeOfMaze()
         {
-            int width = this.Grid.Sizes[0];
-            int height = this.Grid.Sizes[1];
-            //treat outside wall as a single continous line of length [height * 2 + width * 2 - 4] and cycle across it
-            /*
-            e.g width 4 and height 4
-                   OO
-              > O |--| O
-                O |  | O
-                O |  | O
-                O |--| O
-                   OO
-            NOTE: each line is itself a cell
-            -4 is due to the corners
-            */
+            int y = this.RNG.Next(2) == 0 ? 0 : this.Grid.Height - 1;
 
-            int linePos = this.RNG.Next((width * 2) + (height * 2) - 4);
-            //starting from top left corner increment x, after [width] then [height] is decreased
-
-            //if i = 0 then cell is top left corner. if i = (width - 1) then top right
-            //if i = (width - 1) + (height - 1) then bottom right
-
-            //DEV NOTES: some way of taking the value, splitting it in half and if it goes over then x and y go opposite operation?
-            //width 4 height 4
-            //TOP LINE
-            //0 1 2 3
-            //|     | [4]
-            //|     | [5]
-            //9 8 7 6
-            //9 7 5 3
-            //BOTTOM LINE
-            //3 = height - 1
-            // if linePos > width + (height - 1)
-            // x -= linePos - (width + (height - 1))
-            //x = (linePos on the x) - (linePos minus the sum of the width and height of the grid) clamped between the width and zero
-            // x = Clamp(linePos, 0, width - 1) - Clamp((linePos - (width + (height - 1))), 0, width - 1)
-            // y starts as 3
-            // until end of bottom line
-            // y = ((height - 1) - Clamp((linePos - (width - 1)), 0, height - 1)) + (Clamp((linePos - (((width - 1) * 2) + (height - 1))), 0, height - 1))
-            //
-
-            int gridHeight = height - 1;
-            int gridWidth = width - 1;
-
-            int outX = Math.Clamp(linePos, 0, gridWidth) - Math.Clamp(
-                                                                    linePos - (width + gridHeight), 
-                                                                    0, 
-                                                                    gridWidth);
-
-            int outY = (gridHeight - Math.Clamp(linePos - gridWidth, 0, gridHeight)) + (Math.Clamp(
-                    linePos - (
-                        (
-                            gridWidth * 2
-                        ) + 
-                        gridHeight
-                    ),
-                    0,
-                    gridHeight
-                ));
-            
             int[] outCoords = new int[this.Grid.Dimensions];
-            outCoords[0] = outX;
-            outCoords[1] = outY;
+            outCoords[1] = y;
             
-            for (int i = 2; i < this.Grid.Dimensions; i++)
+            for (int i = 0; i < this.Grid.Dimensions; i++)
             {
-                outCoords[i] = this.RNG.Next(this.Grid.Sizes[i]);
+                if (i != 1)
+                {
+                    outCoords[i] = this.RNG.Next(this.Grid.Sizes[i]);
+                }
             }
 
             return outCoords;
@@ -312,7 +262,7 @@ namespace MazeGenerator
         
         public CellWallFlag[] GetShuffledDirections()
         {
-            return MazeGrid.Directions.OrderBy((x) => RNG.Next(2)).ToArray();
+            return this.Grid.Directions.OrderBy((x) => RNG.Next(2)).ToArray();
         }
 
         public int[][] GetDirectionChangesFromDirections(CellWallFlag[] flags)
@@ -322,7 +272,7 @@ namespace MazeGenerator
 
         public int[][] GetShuffledDirectionChanges()
         {
-            return MazeGrid.Directions.OrderBy((x) => RNG.Next(2)).Select((x) => MazeGrid.GetXYChangeForDirection(x)).ToArray();
+            return this.Grid.Directions.OrderBy((x) => RNG.Next(2)).Select((x) => MazeGrid.GetXYChangeForDirection(x)).ToArray();
         }
 
         public static int DistanceBetween(int[] coords1, int[] coords2)
@@ -347,6 +297,24 @@ namespace MazeGenerator
             }
 
             return coords;
+        }
+
+        public static bool CoordsMatch(int[] coords1, int[] coords2)
+        {
+            if (coords1.Length != coords2.Length)
+            {
+                return false;
+            }
+            
+            for (int i = 0; i < coords1.Length; i++)
+            {
+                if (coords1[i] != coords2[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }

@@ -12,7 +12,8 @@ namespace MazeGenerator
      */
     public class MazeGrid
     {
-        public static CellWallFlag[] Directions = new CellWallFlag[] {CellWallFlag.North, CellWallFlag.South, CellWallFlag.East, CellWallFlag.West/*, CellWallFlag.Up, CellWallFlag.Down*/};
+        public static CellWallFlag[] AllDirections = new CellWallFlag[] {CellWallFlag.North, CellWallFlag.South, CellWallFlag.East, CellWallFlag.West, CellWallFlag.Up, CellWallFlag.Down, CellWallFlag.Ana, CellWallFlag.Kata};
+        public CellWallFlag[] Directions = new CellWallFlag[] {CellWallFlag.North, CellWallFlag.South, CellWallFlag.East, CellWallFlag.West/*, CellWallFlag.Up, CellWallFlag.Down*/};
         //each uint is a bit flag corresponding to if something is visited and if it lacks walls in that particular bit.
         //could be done with bytes and stuff for memory efficiency but that limits what this can do
         //Bits:
@@ -67,6 +68,8 @@ namespace MazeGenerator
 
             this.Sizes = ArrayOfMinSize(4, sizes);
 
+            this.Directions = AllDirections.Take(sizes.Length * 2).ToArray();
+
             int size = 1;
 
             this.Sizes.ToList().ForEach(x => {
@@ -108,7 +111,10 @@ namespace MazeGenerator
                     int[] directionArr = GetXYChangeForDirection(direction);
 
                     //don't let it generate off the grid because that will cause errors
-                    if (directionArr[0] < 0 || directionArr[1] < 0) continue;
+                    if (directionArr[0] < 0 || directionArr[1] < 0) 
+                    {
+                        continue;
+                    }
 
                     //and remove the wall opposite to the wall that was removed at x, y
                     //e.g if I remove the north one first, the one north to this cell will lose the south wall
@@ -138,7 +144,6 @@ namespace MazeGenerator
 
         public bool AreAllDirectionsAvailable(uint wall, params int[] coords)
         {
-            //TODO: confirm if all of multiple bytes in wall exist
             return (this[coords] & wall) == wall; // > 0
         }
 
@@ -187,7 +192,7 @@ namespace MazeGenerator
         {
             //TODO: higher dimensions
             //x, y
-            int[] change = new int[4] {0, 0, 0, 0};
+            int[] change = ArrayOfMinSize(4);//new int[4] {0, 0, 0, 0};
 
             switch (flag)
             {

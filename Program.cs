@@ -83,7 +83,7 @@ namespace MazeGenerator
             }
 
             //get total of all directions
-            MazeGrid.Directions.Take(Dimensions * 2).ToList().ForEach(x => {AllDirections += (uint) x; });
+            MazeGrid.AllDirections.Take(Dimensions * 2).ToList().ForEach(x => {AllDirections += (uint) x; });
 
             Task inputTask = new Task(InputThread);
             inputTask.Start();
