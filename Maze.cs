@@ -117,7 +117,7 @@ namespace MazeGenerator
 
                             if (this.Grid.IsValidAndNotVisited(changedCoords))
                             {
-                                this?.Debug($"found valid coord at {changedCoords[0]}, {changedCoords[1]} (I:{this.Grid.CoordInBounds(changedCoords)} V:{this.Grid.IsVisited(changedCoords)})");
+                                this?.Debug($"found valid coord at {String.Join(", ", changedCoords)} (I:{this.Grid.CoordInBounds(changedCoords)} V:{this.Grid.IsVisited(changedCoords)})");
                                 found = true;
                             }
                         }
@@ -155,7 +155,7 @@ namespace MazeGenerator
 
                 //visit the new cell and update the wall
                 int[] nextCellCoords = changedCoords;
-                this?.Debug($"current: X: {currentCell[0]} Y: {currentCell[1]} (V: {this.Grid.IsVisited(currentCell)}, I: {this.Grid.CoordInBounds(currentCell)} (!V)I: {this.Grid.IsValidAndNotVisited(currentCell)}); next: X: {changedCoords[0]} Y: {changedCoords[1]} (V: {this.Grid.IsVisited(currentCell)}, I: {this.Grid.CoordInBounds(currentCell)} (!V)I: {this.Grid.IsValidAndNotVisited(currentCell)}), direction: {Program.DirectionName(direction)}".Replace("True", "Y").Replace("False", "N"));
+                this?.Debug($"current: {String.Join(", ", currentCell)} (V: {this.Grid.IsVisited(currentCell)}, I: {this.Grid.CoordInBounds(currentCell)} (!V)I: {this.Grid.IsValidAndNotVisited(currentCell)}); next: X: {changedCoords[0]} Y: {changedCoords[1]} (V: {this.Grid.IsVisited(currentCell)}, I: {this.Grid.CoordInBounds(currentCell)} (!V)I: {this.Grid.IsValidAndNotVisited(currentCell)}), direction: {Program.DirectionName(direction)}".Replace("True", "Y").Replace("False", "N"));
                 this.Visit(nextCellCoords);
                 this.Grid.SetDirectionsAvailableBetweenTwo((uint) direction, currentCell, nextCellCoords);
 
@@ -203,6 +203,8 @@ namespace MazeGenerator
                     coords.AddRange(AddCoords(prevCoords, shuffledDirections[i]));
                     coords.AddRange(prevCoords);
                     coords.Add((int) directions[i]);
+
+                    this?.Debug("backtracked array " + String.Join(", ", coords.Take(this.Grid.Dimensions).ToArray()));
 
                     if (this.Grid.IsValidAndNotVisited(coords.Take(this.Grid.Dimensions).ToArray())) 
                     {

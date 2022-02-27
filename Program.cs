@@ -75,6 +75,7 @@ namespace MazeGenerator
             // Testing();
             // Console.ReadKey(true);
 
+            Console.WriteLine($"Input dimension (leave blank to stick with default {Dimensions}): ");
             string dimensions = Console.ReadLine();
 
             if (dimensions != "")

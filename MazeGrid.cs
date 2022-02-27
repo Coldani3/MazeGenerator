@@ -66,7 +66,7 @@ namespace MazeGenerator
                 throw new ArgumentException("Insufficient dimensions passed (you can't have a 1D maze)");
             }
 
-            this.Sizes = ArrayOfMinSize(4, sizes);
+            this.Sizes = sizes;
 
             this.Directions = AllDirections.Take(sizes.Length * 2).ToArray();
 
@@ -201,7 +201,7 @@ namespace MazeGenerator
                     break;
             }
 
-            return change;
+            return change.Take((int) Math.Floor(Math.Log2((int) flag))).ToArray();
         }
 
         public uint this[params int[] coords]
