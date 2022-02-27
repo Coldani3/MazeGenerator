@@ -98,34 +98,6 @@ namespace MazeGenerator
             SetDirectionsToAvailable(GetOppositeSide(direction1), coords2);
         }
 
-        public void SetDirectionsAvailableAndUpdateAdjacent(int x, int y, uint wall)
-        {
-            SetDirectionsToAvailable(wall, x, y);
-
-            foreach (CellWallFlag direction in Directions)
-            {
-                //if the wall is being removed here
-                if ((wall & (uint) direction) > 0)
-                {
-                    //get the cell in that direction
-                    int[] directionArr = GetXYChangeForDirection(direction);
-
-                    //don't let it generate off the grid because that will cause errors
-                    if (directionArr[0] < 0 || directionArr[1] < 0) 
-                    {
-                        continue;
-                    }
-
-                    //and remove the wall opposite to the wall that was removed at x, y
-                    //e.g if I remove the north one first, the one north to this cell will lose the south wall
-                    if (this.CoordInBounds(x + directionArr[0], y + directionArr[1]))
-                    {
-                        SetDirectionsToAvailable(GetOppositeSide((uint) direction), x + directionArr[0], y + directionArr[1]);
-                    }
-                }
-            }
-        }
-
         public void SetWallsToOn(uint wall, params int[] coords)
         {
             //why do I need to cast this to a uint first? does the invert operator only return ints or something?

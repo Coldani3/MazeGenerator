@@ -210,6 +210,23 @@ namespace MazeGenerator
             Console.WriteLine($"Testing if both the north and west walls do not exist (are 1): {testGrid.AreAllDirectionsAvailable(~testSouthEastDNE - 1, 0, 0)}, should be False");
             Console.WriteLine($"Testing if opposite directions are gotten properly: Opposite of {Convert.ToString(direction, 2)} is {Convert.ToString(MazeGrid.GetOppositeSide(direction), 2)}, should be {Convert.ToString(direction2, 2)}");
             Console.WriteLine($"Testing if opposite directions are gotten properly: Opposite of {Convert.ToString(direction2, 2)} is {Convert.ToString(MazeGrid.GetOppositeSide(direction2), 2)}, should be {Convert.ToString(direction, 2)}");
+
+            int[] coords1 = new int[] {1, 2, 3, 4};
+            int[] coords2 = new int[] {4, 3, 2, 1};
+
+            bool addsProperly = true;
+
+            foreach (int num in Maze.AddCoords(coords1, coords2))
+            {
+                if (num != 5)
+                {
+                    addsProperly = false;
+                }
+            }
+
+            Console.WriteLine($"Testing coord adding works properly: {addsProperly}");
+            Console.WriteLine($"Testing if coord comparison works: {Maze.CoordsMatch(coords1, coords1)}");
+
         }
 
         static uint ConstructWallDirectionsAvailableFlag(params CellWallFlag[] walls)
