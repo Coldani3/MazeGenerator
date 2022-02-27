@@ -94,7 +94,7 @@ namespace MazeGenerator
             while (this.Visited.Count > 0)
             {
                 CellWallFlag direction = this.RandomDirection();
-                int[] change = MazeGrid.GetXYChangeForDirection(direction).Take(this.Grid.Dimensions).ToArray();
+                int[] change = MazeGrid.GetXYChangeForDirection(direction, this.Grid.Dimensions).Take(this.Grid.Dimensions).ToArray();
 
                 CellWallFlag[] shuffledDirections = this.GetShuffledDirections();
                 int[][] shuffledDirectionChanges = this.GetDirectionChangesFromDirections(shuffledDirections);
@@ -200,11 +200,13 @@ namespace MazeGenerator
 
                 for (int i = 0; i < directions.Length; i++)
                 {
-                    coords.AddRange(AddCoords(prevCoords, shuffledDirections[i]));
+                    int[] changedCoords = AddCoords(prevCoords, shuffledDirections[i]);
+
+                    coords.AddRange(changedCoords);
                     coords.AddRange(prevCoords);
                     coords.Add((int) directions[i]);
 
-                    this?.Debug("backtracked array " + String.Join(", ", coords.Take(this.Grid.Dimensions).ToArray()));
+                    this?.Debug($"backtracked array {String.Join(", ", coords)} - first {this.Grid.Dimensions} of result: {String.Join(", ", coords.Take(this.Grid.Dimensions).ToArray())} vs actual: {String.Join(", ", changedCoords)} - prev: {String.Join(",", prevCoords)}");
 
                     if (this.Grid.IsValidAndNotVisited(coords.Take(this.Grid.Dimensions).ToArray())) 
                     {
@@ -268,12 +270,12 @@ namespace MazeGenerator
 
         public int[][] GetDirectionChangesFromDirections(CellWallFlag[] flags)
         {
-            return flags.Select((x) => MazeGrid.GetXYChangeForDirection(x).Take(this.Grid.Dimensions).ToArray()).ToArray();
+            return flags.Select((x) => MazeGrid.GetXYChangeForDirection(x, this.Grid.Dimensions).Take(this.Grid.Dimensions).ToArray()).ToArray();
         }
 
         public int[][] GetShuffledDirectionChanges()
         {
-            return this.Grid.Directions.OrderBy((x) => RNG.Next(2)).Select((x) => MazeGrid.GetXYChangeForDirection(x).Take(this.Grid.Dimensions).ToArray()).ToArray();
+            return this.Grid.Directions.OrderBy((x) => RNG.Next(2)).Select((x) => MazeGrid.GetXYChangeForDirection(x, this.Grid.Dimensions).Take(this.Grid.Dimensions).ToArray()).ToArray();
         }
 
         public static int DistanceBetween(int[] coords1, int[] coords2)
@@ -320,11 +322,11 @@ namespace MazeGenerator
 
         public static int[] AddCoords(int[] coords1, int[] coords2)
         {
-            //compat for different length arrays of different dimensions
+            
             int minLength = new int[] {coords1.Length, coords2.Length}.Min();
             int[] added = new int[minLength];
 
-            for (int i = 0; i < minLength; i++)
+            for (int i = 0; i < coords2.Length; i++)
             {
                 added[i] = coords1[i] + coords2[i];
             }

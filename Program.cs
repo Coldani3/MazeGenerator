@@ -228,6 +228,16 @@ namespace MazeGenerator
             Console.WriteLine($"Testing coord adding works properly: {addsProperly}");
             Console.WriteLine($"Testing if coord comparison works: {Maze.CoordsMatch(coords1, coords1)}");
 
+            int[] zeroCoords = new int[] {4, 0};
+            int[] change = new int[] {1, 1};
+            int[] changeNeg = new int[] {-1, -1};
+
+            Func<int[], string> asString = (x) => String.Join(", ", x); 
+            int[] summedCoords1 = Maze.AddCoords(zeroCoords, change);
+            int[] summedCoords2 = Maze.AddCoords(zeroCoords, changeNeg);
+
+            Console.WriteLine($"Testing adding coords: {asString(summedCoords1)} length: - {asString(Maze.AddCoords(zeroCoords, changeNeg))}");
+
         }
 
         static uint ConstructWallDirectionsAvailableFlag(params CellWallFlag[] walls)

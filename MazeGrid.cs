@@ -160,7 +160,7 @@ namespace MazeGenerator
             }
         }
 
-        public static int[] GetXYChangeForDirection(CellWallFlag flag)
+        public static int[] GetXYChangeForDirection(CellWallFlag flag, int dimensions)
         {
             //TODO: higher dimensions
             //x, y
@@ -201,7 +201,7 @@ namespace MazeGenerator
                     break;
             }
 
-            return change.Take((int) Math.Floor(Math.Log2((int) flag))).ToArray();
+            return change.Take(dimensions).ToArray();
         }
 
         public uint this[params int[] coords]
