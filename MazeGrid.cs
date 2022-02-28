@@ -209,11 +209,27 @@ namespace MazeGenerator
             get {
                 int[] fixedCoords = ArrayOfMinSize(4, coords);
 
+                for (int i = 0; i < this.Sizes.Length; i++)
+                {
+                    if (fixedCoords[i] < 0 || fixedCoords[i] > this.Sizes[i] - 1)
+                    {
+                        throw new IndexOutOfRangeException($"Coordinate {i} - {fixedCoords[i]} is out of range (should be non negative and less than {this.Sizes[i]}).");
+                    }
+                }
+
                 return this.Grid[(this.Height * this.Width * this.Depth * fixedCoords[3]) + (this.Height * this.Width * fixedCoords[2]) + (this.Height * fixedCoords[1]) + fixedCoords[0]];
             }
 
             set {
                 int[] fixedCoords = ArrayOfMinSize(4, coords);
+
+                for (int i = 0; i < this.Sizes.Length; i++)
+                {
+                    if (fixedCoords[i] < 0 || fixedCoords[i] > this.Sizes[i] - 1)
+                    {
+                        throw new IndexOutOfRangeException($"Coordinate {i} - {fixedCoords[i]} is out of range (should be non negative and less than {this.Sizes[i]}).");
+                    }
+                }
 
                 this.Grid[(this.Height * this.Width * this.Depth * fixedCoords[3]) + (this.Height * this.Width * fixedCoords[2]) + (this.Height * fixedCoords[1]) + fixedCoords[0]] = value;
             }

@@ -88,7 +88,6 @@ namespace MazeGenerator
 
             int[] currentCell = new int[this.Grid.Dimensions];
             Array.Copy(this.MazeEntrance, currentCell, this.Grid.Dimensions);
-            this?.Debug($"maze entrance: {String.Join(", ", this.MazeEntrance)} - current cell: {String.Join(", ", currentCell)}");
 
             int[] changedCoords = new int[this.Grid.Dimensions];
 
@@ -209,8 +208,6 @@ namespace MazeGenerator
                     coords.AddRange(prevCoords);
                     coords.Add((int) directions[i]);
 
-                    this?.Debug($"backtracked array {String.Join(", ", coords)} - first {this.Grid.Dimensions} of result: {String.Join(", ", coords.Take(this.Grid.Dimensions).ToArray())} vs actual: {String.Join(", ", changedCoords)} - prev: {String.Join(",", prevCoords)}");
-
                     if (this.Grid.IsValidAndNotVisited(coords.Take(this.Grid.Dimensions).ToArray())) 
                     {
                         return coords.ToArray();
@@ -239,7 +236,54 @@ namespace MazeGenerator
 
         public void WriteToFile(string fileName)
         {
+            this?.Debug($"saving to file {fileName}");
 
+            //https://github.com/Coldani3/MazeFormat
+            //TODO: figure out data size dynamically
+            byte[] data = new byte[4096];
+
+
+        }
+
+        public byte[] DataForHigherDimCoords(params int[] higherDimCoords)
+        {
+            byte[] outBytes = new byte[this.Grid.Width * this.Grid.Height];
+            int counter = 0;
+            int[] coords = new int[higherDimCoords.Length + 2];
+
+            for (int i = 2; i < higherDimCoords.Length; i++)
+            {
+                coords[i] = higherDimCoords[i - 2];
+            }
+
+            for (int x = 0; x < this.Grid.Width; x++)
+            {
+                coords[0] = x;
+
+                for (int y = 0; y < this.Grid.Height; y++)
+                {
+                    coords[1] = y;
+
+                    //once the visited byte is stripped, 4 dimensions or less will always fit each cell in a byte
+                    if (this.Grid.Dimensions <= 4)
+                    {
+                        //we don't care about the visited byte here, so get rid of it
+                        outBytes[counter] = (byte) ((this.Grid[coords] >> 1) & 0b11111111);
+                    }
+                    else
+                    {
+                        /*
+                          you will have to split the data between multiple bytes here somehow. I'd recommend multiples of 8 for your overall maze data size for simplicity's sake but
+                          you can calculate it between bytes here if you really need to save space.
+                        */
+
+                    }
+                    
+                    counter++;
+                }
+            }
+
+            return outBytes;
         }
 
         public int[] PickRandomCoord()

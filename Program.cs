@@ -9,8 +9,8 @@ namespace MazeGenerator
     {
         public static uint AllDirections = 0;
         public static int Dimensions = 2;
-        public static int MazeWidth = 10;
-        public static int MazeHeight = 10;
+        public static int MazeWidth = 20;
+        public static int MazeHeight = 20;
         public static int MazeDepth = 4;
         public static int MazeHyperDepth = 4;
         public static int MinDistanceBetweenEntranceAndExit = 5;
@@ -29,7 +29,7 @@ namespace MazeGenerator
         private static List<string> DebugLog = new List<string>();
         //there are unfortunately no fancy bit tricks to get the right ones, so we're doing a lookup thing
         public static Dictionary<uint, char> MazeChars = new Dictionary<uint, char>() {
-            {0, '■'},
+            {0, ' '},
             {ConstructWallDirectionsAvailableFlag(CellWallFlag.North), '╵'},
             {ConstructWallDirectionsAvailableFlag(CellWallFlag.South), '╷'},
             {ConstructWallDirectionsAvailableFlag(CellWallFlag.East), '╶'},
@@ -70,6 +70,7 @@ namespace MazeGenerator
 
         static void Main(string[] args)
         {
+            Console.Clear();
             Console.OutputEncoding = System.Text.Encoding.UTF8;
             Console.CursorVisible = false;
             // Testing();
@@ -77,6 +78,8 @@ namespace MazeGenerator
 
             Console.WriteLine($"Input dimension (leave blank to stick with default {Dimensions}): ");
             string dimensions = Console.ReadLine();
+
+            Console.Clear();
 
             if (dimensions != "")
             {
@@ -127,12 +130,24 @@ namespace MazeGenerator
             System.Threading.Thread.Sleep(WaitTime);
         }
 
+        static void ClearMazeDisplay()
+        {
+            Console.SetCursorPosition(0, 0);
+            string clearString = new string(' ', CurrentMaze.Grid.Width);
+
+            for (int i = 0; i < CurrentMaze.Grid.Height - 1; i++)
+            {
+                Console.SetCursorPosition(1, i + 1);
+                Console.WriteLine(clearString);
+            }
+        }
+
         static void Render()
         {
-            Console.Clear();
+            //Console.Clear();
+            //ClearMazeDisplay();
+            Console.SetCursorPosition(0, 0);
             Console.Write("╔" + new String('═', CurrentMaze.Grid.Width) + "╗\n");
-            
-            char currChar;
 
             for (int y = 0; y < CurrentMaze.Grid.Height; y++)
             {
@@ -267,8 +282,20 @@ namespace MazeGenerator
             Debug(message, false);
         }
 
+        static void ClearDebugLogDisplay()
+        {
+            string clearString = new String(' ', Console.WindowWidth - CurrentMaze.Grid.Width);
+
+            for (int i = 0; i < DebugLogSize; i++)
+            {
+                Console.SetCursorPosition(CurrentMaze.Grid.Width + 2, (Console.WindowHeight - 1 - DebugLogSize) + i);
+                Console.Write(clearString);
+            }
+        }
+
         public static void DisplayDebugLog()
         {
+            ClearDebugLogDisplay();
             string[] toPrint = DebugLog.TakeLast(DebugLogSize).ToArray();
             int maxLength = toPrint.Max(x => x.Length);
 
