@@ -88,6 +88,7 @@ namespace MazeGenerator
 
             int[] currentCell = new int[this.Grid.Dimensions];
             Array.Copy(this.MazeEntrance, currentCell, this.Grid.Dimensions);
+            this?.Debug($"maze entrance: {String.Join(", ", this.MazeEntrance)} - current cell: {String.Join(", ", currentCell)}");
 
             int[] changedCoords = new int[this.Grid.Dimensions];
 
@@ -98,6 +99,8 @@ namespace MazeGenerator
 
                 CellWallFlag[] shuffledDirections = this.GetShuffledDirections();
                 int[][] shuffledDirectionChanges = this.GetDirectionChangesFromDirections(shuffledDirections);
+
+                changedCoords = AddCoords(currentCell, change);
 
                 //check to make sure that the coordinates are not visited and in bound
                 if (!this.Grid.IsValidAndNotVisited(changedCoords))
