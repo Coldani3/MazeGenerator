@@ -8,9 +8,9 @@ namespace MazeGenerator
     class Program
     {
         public static uint AllDirections = 0;
-        public static int Dimensions = 2;
-        public static int MazeWidth = 20;
-        public static int MazeHeight = 20;
+        public static int Dimensions = 3;
+        public static int MazeWidth = 15;
+        public static int MazeHeight = 15;
         public static int MazeDepth = 4;
         public static int MazeHyperDepth = 4;
         public static int MinDistanceBetweenEntranceAndExit = 5;
@@ -25,7 +25,7 @@ namespace MazeGenerator
         public static bool StepThrough = true;
         public static bool WaitForInput = true;
         public static bool InputThreadActive = false;
-        public static int WaitTime = 50;
+        public static int WaitTime = 10;
         private static List<string> DebugLog = new List<string>();
         //there are unfortunately no fancy bit tricks to get the right ones, so we're doing a lookup thing
         public static Dictionary<uint, char> MazeChars = new Dictionary<uint, char>() {
@@ -86,13 +86,17 @@ namespace MazeGenerator
                 Dimensions = Int32.Parse(dimensions);
             }
 
+            Debug("dimensions: " + Dimensions);
+
             //get total of all directions
             MazeGrid.AllDirections.Take(Dimensions * 2).ToList().ForEach(x => {AllDirections += (uint) x; });
 
             Task inputTask = new Task(InputThread);
             inputTask.Start();
 
-            CurrentMaze = new Maze(new MazeGrid(MazeWidth, MazeHeight));
+            int[] sizes = new int[] {MazeWidth, MazeHeight, MazeDepth, MazeHyperDepth};
+
+            CurrentMaze = new Maze(new MazeGrid(sizes.Take(Dimensions).ToArray()));
 
             CurrentMaze.SetDebug(Debug);
             
@@ -156,7 +160,7 @@ namespace MazeGenerator
 
                 for (int x = 0; x < CurrentMaze.Grid.Width; x++)
                 {
-                    uint mazeBit = CurrentMaze.Grid[x, y, HigherDimCoords[0], HigherDimCoords[1]] & (0b111111110);
+                    uint mazeBit = CurrentMaze.Grid[x, y, HigherDimCoords[0], HigherDimCoords[1]] & 0b11110; //(0b111111110);
 
                     char mazeChar = MazeChars[mazeBit];
 
@@ -324,6 +328,7 @@ namespace MazeGenerator
         public static void HandleInput(ConsoleKeyInfo input)
         {
             int newCoord = 0;
+            
             switch (input.Key)
             {
                 case ConsoleKey.A:
@@ -333,7 +338,7 @@ namespace MazeGenerator
                 case ConsoleKey.RightArrow:
                     newCoord = (HigherDimCoords[1] + 1);
 
-                    if (newCoord <= MazeDepth && newCoord >= 0)
+                    if (newCoord < MazeDepth && newCoord >= 0)
                     {
                         HigherDimCoords[1] = newCoord;
                     }
@@ -342,7 +347,7 @@ namespace MazeGenerator
                 case ConsoleKey.LeftArrow:
                     newCoord = (HigherDimCoords[1] - 1);
 
-                    if (newCoord <= MazeDepth && newCoord >= 0)
+                    if (newCoord < MazeDepth && newCoord >= 0)
                     {
                         HigherDimCoords[1] = newCoord;
                     }
@@ -352,7 +357,7 @@ namespace MazeGenerator
                 case ConsoleKey.UpArrow:
                     newCoord = (HigherDimCoords[0] + 1);
 
-                    if (newCoord <= MazeDepth && newCoord >= 0)
+                    if (newCoord < MazeDepth && newCoord >= 0)
                     {
                         HigherDimCoords[0] = newCoord;
                     }
@@ -362,7 +367,7 @@ namespace MazeGenerator
                 case ConsoleKey.DownArrow:
                     newCoord = (HigherDimCoords[0] - 1);
 
-                    if (newCoord <= MazeDepth && newCoord >= 0)
+                    if (newCoord < MazeDepth && newCoord >= 0)
                     {
                         HigherDimCoords[0] = newCoord;
                     }
