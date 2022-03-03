@@ -261,6 +261,7 @@ namespace MazeGenerator
             //https://github.com/Coldani3/MazeFormat
             //TODO: figure out data size dynamically
             int size = 1;
+            int counter = 0;
 
             for (int i = 0; i < this.Grid.Sizes.Length; i++)
             {
@@ -270,6 +271,28 @@ namespace MazeGenerator
             byte[] data = new byte[size + 1000];
 
 
+        }
+
+        private void PushByte(ref byte[] data, ref int counter, byte toPush)
+        {
+            data[counter] = toPush;
+            counter++;
+        }
+
+        private void PushStringAsBytes(ref byte[] data, ref int counter, string toPush)
+        {
+            foreach (char character in toPush)
+            {
+                PushByte(ref data, ref counter, (byte) character);
+            }
+        }
+
+        private void PushByteArray(ref byte[] data, ref int counter, byte[] toPush)
+        {
+            foreach (byte toPushByte in toPush)
+            {
+                PushByte(ref data, ref counter, toPushByte);
+            }
         }
 
         public byte[] DataForHigherDimCoords(params int[] higherDimCoords)
