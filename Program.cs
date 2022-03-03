@@ -49,11 +49,11 @@ namespace MazeGenerator
 
         public static Dictionary<uint, ConsoleColor> ColoursForHigherDims = new Dictionary<uint, ConsoleColor>() {
             {0b000100000, ConsoleColor.Blue},
-            {0b001000000, ConsoleColor.DarkBlue},
-            {0b001100000, ConsoleColor.Yellow},
-            {0b010000000, ConsoleColor.Gray},
-            {0b100000000, ConsoleColor.DarkGray},
-            {0b110000000, ConsoleColor.Magenta},
+            {0b001000000, ConsoleColor.Cyan},
+            {0b001100000, ConsoleColor.DarkCyan},
+            {0b010000000, ConsoleColor.Yellow},
+            {0b100000000, ConsoleColor.Magenta},
+            {0b110000000, ConsoleColor.Gray},
             {0, ConsoleColor.White}
         };
         public static Dictionary<CellWallFlag, string> DirectionNames = new Dictionary<CellWallFlag, string>() {
@@ -99,6 +99,7 @@ namespace MazeGenerator
             CurrentMaze = new Maze(new MazeGrid(sizes.Take(Dimensions).ToArray()));
 
             CurrentMaze.SetDebug(Debug);
+            CurrentMaze.SetUpdateRendererHigherDim(UpdateRendererHigherDim);
             
             if (StepThrough)
             {
@@ -152,6 +153,7 @@ namespace MazeGenerator
             //ClearMazeDisplay();
             Console.SetCursorPosition(0, 0);
             Console.Write("╔" + new String('═', CurrentMaze.Grid.Width) + "╗\n");
+            int[] currCoords = new int[Dimensions];
 
             for (int y = 0; y < CurrentMaze.Grid.Height; y++)
             {
@@ -160,16 +162,19 @@ namespace MazeGenerator
 
                 for (int x = 0; x < CurrentMaze.Grid.Width; x++)
                 {
-                    uint mazeBit = CurrentMaze.Grid[x, y, HigherDimCoords[0], HigherDimCoords[1]] & 0b11110; //(0b111111110);
+                    currCoords = new int[] {x, y}.Concat(HigherDimCoords).ToArray();
+                    //Console.Write($"{x}, {y}, {HigherDimCoords[0]}, {HigherDimCoords[1]}");
+                    uint mazeBit = CurrentMaze.Grid[currCoords] & 0b111111110;
+                    uint mazeShapeBit = mazeBit & 0b11110;
 
-                    char mazeChar = MazeChars[mazeBit];
+                    char mazeChar = MazeChars[mazeShapeBit];
 
-                    if (CurrentMaze.MazeEntrance[0] == x && CurrentMaze.MazeEntrance[1] == y)
+                    if (Maze.CoordsMatch(CurrentMaze.MazeEntrance, currCoords))
                     {
                         Console.ForegroundColor = ConsoleColor.Green;
                     }
 
-                    if (CurrentMaze.MazeExit[0] == x && CurrentMaze.MazeExit[1] == y)
+                    if (Maze.CoordsMatch(CurrentMaze.MazeExit, currCoords))
                     {
                         Console.ForegroundColor = ConsoleColor.Red;
                     }
@@ -198,6 +203,17 @@ namespace MazeGenerator
 
             Console.SetCursorPosition(0, (CurrentMaze.Grid.Height + 1));
             Console.Write("╚" + new String('═', CurrentMaze.Grid.Width) + "╝");
+
+            Console.SetCursorPosition(MazeWidth + 4, MazeHeight / 2);
+            if (Dimensions > 2)
+            {
+                Console.Write($"Coords: Z: {HigherDimCoords[0]}");
+
+                if (Dimensions > 3)
+                {
+                    Console.Write(" W: {HigherDimCoords[1]}");
+                }
+            }
 
             if (DebugLog.Count > 0) DisplayDebugLog();
         }
@@ -281,6 +297,16 @@ namespace MazeGenerator
             }
         }
 
+        public static void UpdateRendererHigherDim(params int[] coords)
+        {
+            if (!Maze.CoordsMatch(HigherDimCoords, coords))
+            {
+                HigherDimCoords = coords;
+                //ClearMazeDisplay();
+                Render();
+            }
+        }
+
         public static void Debug(string message) 
         {
             Debug(message, false);
@@ -341,6 +367,7 @@ namespace MazeGenerator
                     if (newCoord < MazeDepth && newCoord >= 0)
                     {
                         HigherDimCoords[1] = newCoord;
+                        Render();
                     }
                     break;
 
@@ -350,6 +377,7 @@ namespace MazeGenerator
                     if (newCoord < MazeDepth && newCoord >= 0)
                     {
                         HigherDimCoords[1] = newCoord;
+                        Render();
                     }
 
                     break;
@@ -360,6 +388,7 @@ namespace MazeGenerator
                     if (newCoord < MazeDepth && newCoord >= 0)
                     {
                         HigherDimCoords[0] = newCoord;
+                        Render();
                     }
 
                     break;
@@ -370,6 +399,7 @@ namespace MazeGenerator
                     if (newCoord < MazeDepth && newCoord >= 0)
                     {
                         HigherDimCoords[0] = newCoord;
+                        Render();
                     }
 
                     break;

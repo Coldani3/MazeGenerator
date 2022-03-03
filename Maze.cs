@@ -15,7 +15,8 @@ namespace MazeGenerator
         public int[] MazeExit;
         //TODO: higher and lower dimensionsW
         public Action Render = null;
-        public Action<string> Debug = null;
+        public Action<string> DebugMethod = null;
+        public Action<int[]> UpdateRendererHigherDim = null;
 
         public Maze(MazeGrid grid, int? seed=null, bool allowNonWallEntrance=false, bool allowNonWallExit=false)
         {
@@ -41,7 +42,21 @@ namespace MazeGenerator
 
         public Maze SetDebug(Action<string> debug)
         {
-            this.Debug = debug;
+            this.DebugMethod = debug;
+            return this;
+        }
+
+        public void Debug(string message)
+        {
+            if (this.DebugMethod != null)
+            {
+                this.DebugMethod(message);
+            }
+        }
+
+        public Maze SetUpdateRendererHigherDim(Action<int[]> updateRenderer)
+        {
+            this.UpdateRendererHigherDim = updateRenderer;
             return this;
         }
 
@@ -161,6 +176,11 @@ namespace MazeGenerator
                 this.Visit(nextCellCoords);
                 this.Grid.SetDirectionsAvailableBetweenTwo((uint) direction, currentCell, nextCellCoords);
 
+                if (nextCellCoords.Length > 2 && this.UpdateRendererHigherDim != null)
+                {
+                    this?.UpdateRendererHigherDim(nextCellCoords.Skip(2).ToArray());
+                }
+
                 //set the current cell to the new changed coords
                 currentCell = changedCoords;
                 this?.Render();
@@ -240,7 +260,14 @@ namespace MazeGenerator
 
             //https://github.com/Coldani3/MazeFormat
             //TODO: figure out data size dynamically
-            byte[] data = new byte[4096];
+            int size = 1;
+
+            for (int i = 0; i < this.Grid.Sizes.Length; i++)
+            {
+                size *= this.Grid.Sizes[i];
+            }
+
+            byte[] data = new byte[size + 1000];
 
 
         }
