@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 using System;
 
 namespace MazeGenerator
@@ -254,7 +255,7 @@ namespace MazeGenerator
             this.Visited.Push(coords);
         }
 
-        public void WriteToFile(string fileName)
+        public async void WriteToFile(string fileName)
         {
             this?.Debug($"saving to file {fileName}");
 
@@ -270,7 +271,45 @@ namespace MazeGenerator
 
             byte[] data = new byte[size + 1000];
 
+            this.PushStringAsBytes(ref data, ref counter, "8{" + String.Join(',', this.Grid.Sizes) + "}");
 
+            int w = 0;
+            int z = 0;
+
+            do
+            {
+                do
+                {
+                    //the sizes are stored as ascii instead of raw data in order to allow for large mazes (ie. larger than 255)
+                    this.PushStringAsBytes(ref data, ref counter, $"[{this.Grid.Width}|{this.Grid.Height}]");
+                    //we never do anything with offset (all mazes are cubes/hypercubes/etc.) so we omit it
+
+                    if (this.Grid.Depth > 0)
+                    {
+                        string higherDimCoords = $"\\{z}";
+
+                        if (this.Grid.HyperDepth > 0)
+                        {
+                            higherDimCoords += $"|{w}";
+                        }
+
+                        higherDimCoords += "/";
+
+                        this.PushStringAsBytes(ref data, ref counter, higherDimCoords);
+                    }
+
+                    this.PushByteArray(ref data, ref counter, DataForHigherDimCoords(z, w));
+                    z++;
+                }
+                while (z < this.Grid.Depth);
+
+                w++;
+            }
+            while (w < this.Grid.HyperDepth);
+
+            this.PushStringAsBytes(ref data, ref counter, $"+({String.Join(',', this.MazeEntrance)})({String.Join(',', this.MazeExit)})+");
+
+            File.WriteAllBytes(fileName, data);
         }
 
         private void PushByte(ref byte[] data, ref int counter, byte toPush)
@@ -279,19 +318,24 @@ namespace MazeGenerator
             counter++;
         }
 
-        private void PushStringAsBytes(ref byte[] data, ref int counter, string toPush)
-        {
-            foreach (char character in toPush)
-            {
-                PushByte(ref data, ref counter, (byte) character);
-            }
-        }
-
         private void PushByteArray(ref byte[] data, ref int counter, byte[] toPush)
         {
             foreach (byte toPushByte in toPush)
             {
-                PushByte(ref data, ref counter, toPushByte);
+                this.PushByte(ref data, ref counter, toPushByte);
+            }
+        }
+
+        private void PushCharAsByte(ref byte[] data, ref int counter, char toPush)
+        {
+            this.PushByte(ref data, ref counter, (byte) toPush);
+        }
+
+        private void PushStringAsBytes(ref byte[] data, ref int counter, string toPush)
+        {
+            foreach (char character in toPush)
+            {
+                this.PushCharAsByte(ref data, ref counter, character);
             }
         }
 
@@ -323,7 +367,8 @@ namespace MazeGenerator
                     else
                     {
                         /*
-                          you will have to split the data between multiple bytes here somehow. I'd recommend multiples of 8 for your overall maze data size for simplicity's sake but
+                          you will have to split the data between multiple bytes here somehow. I'd recommend 
+                          multiples of 8 for your overall maze data size for simplicity's sake but
                           you can calculate it between bytes here if you really need to save space.
                         */
 

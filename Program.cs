@@ -15,6 +15,7 @@ namespace MazeGenerator
         public static int MazeHyperDepth = 4;
         public static int MinDistanceBetweenEntranceAndExit = 5;
         public static bool Running = true;
+        public static bool MazeDoneGenning = false;
         public static int[] HigherDimCoords = new int[] {0, 0};
         public static Maze CurrentMaze;
         
@@ -163,7 +164,7 @@ namespace MazeGenerator
                 for (int x = 0; x < CurrentMaze.Grid.Width; x++)
                 {
                     currCoords = new int[] {x, y}.Concat(HigherDimCoords).ToArray();
-                    //Console.Write($"{x}, {y}, {HigherDimCoords[0]}, {HigherDimCoords[1]}");
+                    
                     uint mazeBit = CurrentMaze.Grid[currCoords] & 0b111111110;
                     uint mazeShapeBit = mazeBit & 0b11110;
 
