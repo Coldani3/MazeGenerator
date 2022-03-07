@@ -389,20 +389,15 @@ namespace MazeGenerator
         {
             byte[] outBytes = new byte[this.Grid.Width * this.Grid.Height];
             int counter = 0;
-            int[] coords = new int[higherDimCoords.Length + 2];
+            int[] coords = new int[2].Concat(higherDimCoords).ToArray();
 
-            for (int i = 2; i < higherDimCoords.Length; i++)
+            for (int y = 0; y < this.Grid.Height; y++)
             {
-                coords[i] = higherDimCoords[i - 2];
-            }
+                coords[1] = y;
 
-            for (int x = 0; x < this.Grid.Width; x++)
-            {
-                coords[0] = x;
-
-                for (int y = 0; y < this.Grid.Height; y++)
+                for (int x = 0; x < this.Grid.Width; x++)
                 {
-                    coords[1] = y;
+                    coords[0] = x;
 
                     //once the visited byte is stripped, 4 dimensions or less will always fit each cell in a byte
                     if (this.Grid.Dimensions <= 4)
