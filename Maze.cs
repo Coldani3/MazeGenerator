@@ -313,7 +313,7 @@ namespace MazeGenerator
                 }
             }
 
-            byte[] data = new byte[size + 50];
+            byte[] data = new byte[size];
 
             this.PushStringAsBytes(ref data, ref counter, "8{" + String.Join(',', this.Grid.Sizes) + "}");
 

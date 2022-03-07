@@ -438,14 +438,14 @@ namespace MazeGenerator
                 case ConsoleKey.S:
                     if (MazeDoneGenning && !SavedMazeThisSession)
                     {
-                        string fileName = "maze.cd3maz";
+                        string fileName = $"maze{CurrentMaze.Grid.Dimensions + "D"}.cd3maz";
 
                         int alreadyExists = 0;
 
                         while (System.IO.File.Exists(fileName))
                         {
                             alreadyExists++;
-                            fileName = $"maze{alreadyExists}.cd3maz";
+                            fileName = $"maze{CurrentMaze.Grid.Dimensions + "D"}{alreadyExists}.cd3maz";
                         }
 
                         Debug($"Saving to {fileName}...");
