@@ -18,6 +18,7 @@ namespace MazeGenerator
         public static bool MazeDoneGenning = false;
         public static int[] HigherDimCoords = new int[] {0, 0};
         public static Maze CurrentMaze;
+        public static bool SavedMazeThisSession = false;
         
 
 #region Debug and Rendering stuff
@@ -67,10 +68,20 @@ namespace MazeGenerator
             {CellWallFlag.Ana, "Ana"},
             {CellWallFlag.Kata, "Kata"},
         };
+        private static string[] Controls = new string[] {
+                "↑ - +y",
+                "↓ - -y",
+                "→ - +w",
+                "← - -w",
+                "Enter - step through maze gen",
+                "a - do not wait for Enter",
+                "s (once done) - save"
+            };
 #endregion
 
         static void Main(string[] args)
         {
+            Console.BackgroundColor = ConsoleColor.Black;
             Console.Clear();
             Console.OutputEncoding = System.Text.Encoding.UTF8;
             Console.CursorVisible = false;
@@ -79,6 +90,12 @@ namespace MazeGenerator
 
             Console.WriteLine($"Input dimension (leave blank to stick with default {Dimensions}): ");
             string dimensions = Console.ReadLine();
+
+            Console.WriteLine("\nStep through generation process with Enter? (Y/n - Yes/No)");
+            if (Console.ReadKey().KeyChar.ToString().ToLower() == "n")
+            {
+                StepThrough = false;
+            }
 
             Console.Clear();
 
@@ -100,17 +117,19 @@ namespace MazeGenerator
             CurrentMaze = new Maze(new MazeGrid(sizes.Take(Dimensions).ToArray()));
 
             CurrentMaze.SetDebug(Debug);
-            CurrentMaze.SetUpdateRendererHigherDim(UpdateRendererHigherDim);
             
             if (StepThrough)
             {
-                CurrentMaze = CurrentMaze.SetRenderer(HandleRender).Generate();
+                CurrentMaze = CurrentMaze.SetRenderer(HandleRender).SetUpdateRendererHigherDim(UpdateRendererHigherDim).Generate();
             }
             else
             {
                 CurrentMaze = CurrentMaze.Generate();
             }
 
+            Render();
+
+            MazeDoneGenning = true;
             InputThreadActive = true;
 
             while (Running)
@@ -152,7 +171,17 @@ namespace MazeGenerator
         {
             //Console.Clear();
             //ClearMazeDisplay();
+
+            int max = Controls.Max(x => x.Length);
+
+            for (int i = 0; i < Controls.Length; i++)
+            {
+                Console.SetCursorPosition(Console.WindowWidth - 1 - max, i);
+                Console.Write(Controls[i]);
+            }
+
             Console.SetCursorPosition(0, 0);
+
             Console.Write("╔" + new String('═', CurrentMaze.Grid.Width) + "╗\n");
             int[] currCoords = new int[Dimensions];
 
@@ -197,6 +226,7 @@ namespace MazeGenerator
                     Console.Write(mazeChar);
                     
                     Console.ForegroundColor = ConsoleColor.White;
+                    Console.BackgroundColor = ConsoleColor.Black;
                 }
 
                 Console.Write("║\n");
@@ -212,7 +242,7 @@ namespace MazeGenerator
 
                 if (Dimensions > 3)
                 {
-                    Console.Write(" W: {HigherDimCoords[1]}");
+                    Console.Write($" W: {HigherDimCoords[1]}");
                 }
             }
 
@@ -228,7 +258,7 @@ namespace MazeGenerator
             //| 
             // 
             uint twoDCell = ConstructWallDirectionsAvailableFlag(CellWallFlag.South, CellWallFlag.East) + 1;//0b01101;
-            uint threeDCell = 0b1101101;
+            //uint threeDCell = 0b1101101;
 
             uint direction = (uint) CellWallFlag.East;
             uint direction2 = (uint) CellWallFlag.West;
@@ -403,6 +433,30 @@ namespace MazeGenerator
                         Render();
                     }
 
+                    break;
+                
+                case ConsoleKey.S:
+                    if (MazeDoneGenning && !SavedMazeThisSession)
+                    {
+                        string fileName = "maze.cd3maz";
+
+                        int alreadyExists = 0;
+
+                        while (System.IO.File.Exists(fileName))
+                        {
+                            alreadyExists++;
+                            fileName = $"maze{alreadyExists}.cd3maz";
+                        }
+
+                        Debug($"Saving to {fileName}...");
+
+                        CurrentMaze.WriteToFile(fileName);
+
+                        Debug($"Done saving.");
+
+                        SavedMazeThisSession = true;
+                        Render();
+                    }
                     break;
             }
         }

@@ -15,7 +15,7 @@ namespace MazeGenerator
         public int[] MazeEntrance;
         public int[] MazeExit;
         //TODO: higher and lower dimensionsW
-        public Action Render = null;
+        public Action RenderMethod = null;
         public Action<string> DebugMethod = null;
         public Action<int[]> UpdateRendererHigherDim = null;
 
@@ -37,7 +37,7 @@ namespace MazeGenerator
 
         public Maze SetRenderer(Action render)
         {
-            this.Render = render;
+            this.RenderMethod = render;
             return this;
         }
 
@@ -52,6 +52,14 @@ namespace MazeGenerator
             if (this.DebugMethod != null)
             {
                 this.DebugMethod(message);
+            }
+        }
+
+        public void Render()
+        {
+            if (this.RenderMethod != null)
+            {
+                this.RenderMethod();
             }
         }
 
@@ -255,7 +263,7 @@ namespace MazeGenerator
             this.Visited.Push(coords);
         }
 
-        public async void WriteToFile(string fileName)
+        public void WriteToFile(string fileName)
         {
             this?.Debug($"saving to file {fileName}");
 
@@ -269,7 +277,43 @@ namespace MazeGenerator
                 size *= this.Grid.Sizes[i];
             }
 
-            byte[] data = new byte[size + 1000];
+            //data size definition
+            size += this.Grid.Sizes.Sum(x => x.ToString().Length) + (this.Grid.Sizes.Length - 1) + 3;
+
+            //maze entrance and exit definition
+            for (int i = 0; i < this.MazeEntrance.Length; i++)
+            {
+                size += this.MazeEntrance[i].ToString().Length;
+            }
+
+            for (int i = 0; i < this.MazeExit.Length; i++)
+            {
+                size += this.MazeExit[i].ToString().Length;
+            }
+
+            //commas
+            size += (this.MazeEntrance.Length - 1) + (this.MazeExit.Length - 1) + 6;
+
+            int sliceSize = this.Grid.Width.ToString().Length + this.Grid.Height.ToString().Length + 3;
+
+            //higher dimension coordinates definition
+            if (this.Grid.Depth > 0)
+            {
+                for (int i = 0; i < this.Grid.Depth; i++)
+                {
+                    size += (i.ToString().Length) + 2 + sliceSize;
+
+                    if (this.Grid.HyperDepth > 0)
+                    {
+                        for (int j = 0; j < this.Grid.HyperDepth; j++)
+                        {
+                            size += (j.ToString().Length) + 1 + sliceSize;
+                        }
+                    }
+                }
+            }
+
+            byte[] data = new byte[size + 50];
 
             this.PushStringAsBytes(ref data, ref counter, "8{" + String.Join(',', this.Grid.Sizes) + "}");
 
@@ -302,6 +346,8 @@ namespace MazeGenerator
                     z++;
                 }
                 while (z < this.Grid.Depth);
+
+                z = 0;
 
                 w++;
             }
