@@ -53,9 +53,9 @@ namespace MazeGenerator
             {0b000100000, ConsoleColor.Blue},
             {0b001000000, ConsoleColor.Cyan},
             {0b001100000, ConsoleColor.DarkCyan},
-            {0b010000000, ConsoleColor.Yellow},
-            {0b100000000, ConsoleColor.Magenta},
-            {0b110000000, ConsoleColor.Gray},
+            {0b010000000, ConsoleColor.DarkRed},
+            {0b100000000, ConsoleColor.DarkGreen},
+            {0b110000000, ConsoleColor.Yellow},
             {0, ConsoleColor.White}
         };
         public static Dictionary<CellWallFlag, string> DirectionNames = new Dictionary<CellWallFlag, string>() {
@@ -167,7 +167,7 @@ namespace MazeGenerator
             }
         }
 
-        static void Render()
+        static async void Render()
         {
             //Console.Clear();
             //ClearMazeDisplay();
@@ -213,12 +213,12 @@ namespace MazeGenerator
                     ConsoleColor background = ColoursForHigherDims[mazeBit & 0b110000000];
                     Console.BackgroundColor = (background == ConsoleColor.White ? ConsoleColor.Black : background);
 
-                    if (CurrentMaze.MazeEntrance[0] == x && CurrentMaze.MazeEntrance[1] == y)
+                    if (Maze.CoordsMatch(CurrentMaze.MazeEntrance, currCoords))
                     {
                         Console.ForegroundColor = ConsoleColor.Green;
                     }
 
-                    if (CurrentMaze.MazeExit[0] == x && CurrentMaze.MazeExit[1] == y)
+                    if (Maze.CoordsMatch(CurrentMaze.MazeExit, currCoords))
                     {
                         Console.ForegroundColor = ConsoleColor.Red;
                     }
@@ -236,6 +236,7 @@ namespace MazeGenerator
             Console.Write("╚" + new String('═', CurrentMaze.Grid.Width) + "╝");
 
             Console.SetCursorPosition(MazeWidth + 4, MazeHeight / 2);
+
             if (Dimensions > 2)
             {
                 Console.Write($"Coords: Z: {HigherDimCoords[0]}");
@@ -245,6 +246,39 @@ namespace MazeGenerator
                     Console.Write($" W: {HigherDimCoords[1]}");
                 }
             }
+
+            Console.SetCursorPosition(MazeWidth + 4, MazeHeight / 2 + 1);
+            Console.Write($"Entrance: {String.Join(", ", CurrentMaze.MazeEntrance)}, Exit: {String.Join(", ", CurrentMaze.MazeExit)}");
+
+            ConsoleColor foregroundDefault = Console.ForegroundColor;
+            ConsoleColor backgroundDefault = Console.BackgroundColor;
+            int height = (MazeHeight / 2) + 3;
+            int width = MazeWidth + 4;
+
+            Console.SetCursorPosition(width, height);
+            Console.ForegroundColor = ColoursForHigherDims[(int) CellWallFlag.Up];
+            Console.Write("+y");
+            Console.SetCursorPosition(width, height + 1);
+            Console.ForegroundColor = ColoursForHigherDims[(int) CellWallFlag.Down];
+            Console.Write("-y");
+            Console.SetCursorPosition(width, height + 2);
+            Console.ForegroundColor = ColoursForHigherDims[0b001100000];
+            Console.Write("+/-y");
+
+            Console.ForegroundColor = ConsoleColor.Black;
+
+            Console.SetCursorPosition(width, height + 4);
+            Console.BackgroundColor = ColoursForHigherDims[(int) CellWallFlag.Ana];
+            Console.Write("+w");
+            Console.SetCursorPosition(width, height + 5);
+            Console.BackgroundColor = ColoursForHigherDims[(int) CellWallFlag.Kata];
+            Console.Write("-w");
+            Console.SetCursorPosition(width, height + 6);
+            Console.BackgroundColor = ColoursForHigherDims[0b110000000];
+            Console.Write("+/-w");
+
+            Console.BackgroundColor = backgroundDefault;
+            Console.ForegroundColor = foregroundDefault;
 
             if (DebugLog.Count > 0) DisplayDebugLog();
         }

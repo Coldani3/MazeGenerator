@@ -272,24 +272,15 @@ namespace MazeGenerator
             int size = 1;
             int counter = 0;
 
-            for (int i = 0; i < this.Grid.Sizes.Length; i++)
-            {
-                size *= this.Grid.Sizes[i];
-            }
+            this.Grid.Sizes.ToList().ForEach(x => size *= x);
 
             //data size definition
             size += this.Grid.Sizes.Sum(x => x.ToString().Length) + (this.Grid.Sizes.Length - 1) + 3;
 
-            //maze entrance and exit definition
-            for (int i = 0; i < this.MazeEntrance.Length; i++)
-            {
-                size += this.MazeEntrance[i].ToString().Length;
-            }
 
-            for (int i = 0; i < this.MazeExit.Length; i++)
-            {
-                size += this.MazeExit[i].ToString().Length;
-            }
+            //maze entrance and exit definition
+            this.MazeEntrance.ToList().ForEach(x => size += x.ToString().Length);
+            this.MazeExit.ToList().ForEach(x => size += x.ToString().Length);
 
             //commas
             size += (this.MazeEntrance.Length - 1) + (this.MazeExit.Length - 1) + 6;
@@ -313,7 +304,8 @@ namespace MazeGenerator
                 }
             }
 
-            byte[] data = new byte[size];
+            //TODO: track down missing 8 bytes
+            byte[] data = new byte[size + 8];
 
             this.PushStringAsBytes(ref data, ref counter, "8{" + String.Join(',', this.Grid.Sizes) + "}");
 
@@ -353,7 +345,9 @@ namespace MazeGenerator
             }
             while (w < this.Grid.HyperDepth);
 
-            this.PushStringAsBytes(ref data, ref counter, $"+({String.Join(',', this.MazeEntrance)})({String.Join(',', this.MazeExit)})+");
+            string entranceExit = $"+({String.Join(',', this.MazeEntrance)})({String.Join(',', this.MazeExit)})+";
+
+            this.PushStringAsBytes(ref data, ref counter, entranceExit);
 
             File.WriteAllBytes(fileName, data);
         }
