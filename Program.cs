@@ -9,8 +9,8 @@ namespace MazeGenerator
     {
         public static uint AllDirections = 0;
         public static int Dimensions = 3;
-        public static int MazeWidth = 15;
-        public static int MazeHeight = 15;
+        public static int MazeWidth = 10;
+        public static int MazeHeight = 10;
         public static int MazeDepth = 4;
         public static int MazeHyperDepth = 4;
         public static int MinDistanceBetweenEntranceAndExit = 5;
@@ -18,6 +18,9 @@ namespace MazeGenerator
         public static bool MazeDoneGenning = false;
         public static int[] HigherDimCoords = new int[] {0, 0};
         public static Maze CurrentMaze;
+        //cd3maz = main format
+        //cd3mazs = simple format
+        public static string FileExtension = "cd3mazs";
         public static bool SavedMazeThisSession = false;
         
 
@@ -472,14 +475,14 @@ namespace MazeGenerator
                 case ConsoleKey.S:
                     if (MazeDoneGenning && !SavedMazeThisSession)
                     {
-                        string fileName = $"maze{CurrentMaze.Grid.Dimensions + "D"}.cd3maz";
+                        string fileName = $"maze{CurrentMaze.Grid.Dimensions + "D"}.{FileExtension}";
 
                         int alreadyExists = 0;
 
                         while (System.IO.File.Exists(fileName))
                         {
                             alreadyExists++;
-                            fileName = $"maze{CurrentMaze.Grid.Dimensions + "D"}{alreadyExists}.cd3maz";
+                            fileName = $"maze{CurrentMaze.Grid.Dimensions + "D"}{alreadyExists}.{FileExtension}";
                         }
 
                         Debug($"Saving to {fileName}...");

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System;
+using System.Buffers.Binary;
 
 namespace MazeGenerator
 {
@@ -263,91 +264,127 @@ namespace MazeGenerator
             this.Visited.Push(coords);
         }
 
+        private byte[] UIntToBytes(uint value) {
+            Span<byte> output = new Span<byte>();
+
+            if (BitConverter.IsLittleEndian) 
+            {
+                BinaryPrimitives.WriteUInt32LittleEndian(output, value);
+            }
+            else
+            {
+                BinaryPrimitives.WriteUInt32BigEndian(output, value);
+            }
+
+            return output.ToArray();
+        }
+
         public void WriteToFile(string fileName)
         {
+            //<dimensions> <maze x size> <maze y size> <maze z size> <maze w size> <maze entrance x, y, z, w> <maze exit x, y, z, w> <raw data>
+
+            //TODO: figure out what this is supposed to do
+            //int size = 1 + this.Grid.Sizes.Sum(x => x.ToString().Length) + (this.Grid.Sizes.Length - 1) + 3;
+            int size = 1;
+
+            this.Grid.Sizes.ToList().ForEach(x => size *= x);
+
+            byte[] data = new byte[4 + 4 + 4 + 4 + size];
+            /*this?.Debug*/Console.WriteLine($"FILE WRITE SIZES: {data.Length.ToString()}, {size}");
+
+            int counter = 0;
+
+            this.PushByte(ref data, ref counter, (byte) this.Grid.Dimensions);
+
+            this.Grid.Sizes.ToList().ForEach(x => this.PushByte(ref data, ref counter, (byte) x));
+
+            this.MazeEntrance.ToList().ForEach(x => this.PushByte(ref data, ref counter, (byte) x));
+            this.MazeExit.ToList().ForEach(x => this.PushByte(ref data, ref counter, (byte) x));
+            this.Grid.Grid.ToList().ForEach(x => this.PushByte/*Array*/(ref data, ref counter, (byte) x/*UIntToBytes(x)*/));
+
             this?.Debug($"saving to file {fileName}");
 
             //https://github.com/Coldani3/MazeFormat
             //TODO: figure out data size dynamically
-            int size = 1;
-            int counter = 0;
+            // int size = 1;
+            // int counter = 0;
 
-            this.Grid.Sizes.ToList().ForEach(x => size *= x);
+            // this.Grid.Sizes.ToList().ForEach(x => size *= x);
 
-            //data size definition
-            size += this.Grid.Sizes.Sum(x => x.ToString().Length) + (this.Grid.Sizes.Length - 1) + 3;
+            // //data size definition
+            // size += this.Grid.Sizes.Sum(x => x.ToString().Length) + (this.Grid.Sizes.Length - 1) + 3;
 
 
-            //maze entrance and exit definition
-            this.MazeEntrance.ToList().ForEach(x => size += x.ToString().Length);
-            this.MazeExit.ToList().ForEach(x => size += x.ToString().Length);
+            // //maze entrance and exit definition
+            // this.MazeEntrance.ToList().ForEach(x => size += x.ToString().Length);
+            // this.MazeExit.ToList().ForEach(x => size += x.ToString().Length);
 
-            //commas
-            size += (this.MazeEntrance.Length - 1) + (this.MazeExit.Length - 1) + 6;
+            // //commas
+            // size += (this.MazeEntrance.Length - 1) + (this.MazeExit.Length - 1) + 6;
 
-            int sliceSize = this.Grid.Width.ToString().Length + this.Grid.Height.ToString().Length + 3;
+            // int sliceSize = this.Grid.Width.ToString().Length + this.Grid.Height.ToString().Length + 3;
 
-            //higher dimension coordinates definition
-            if (this.Grid.Depth > 0)
-            {
-                for (int i = 0; i < this.Grid.Depth; i++)
-                {
-                    size += (i.ToString().Length) + 2 + sliceSize;
+            // //higher dimension coordinates definition
+            // if (this.Grid.Depth > 0)
+            // {
+            //     for (int i = 0; i < this.Grid.Depth; i++)
+            //     {
+            //         size += (i.ToString().Length) + 2 + sliceSize;
 
-                    if (this.Grid.HyperDepth > 0)
-                    {
-                        for (int j = 0; j < this.Grid.HyperDepth; j++)
-                        {
-                            size += (j.ToString().Length) + 1 + sliceSize;
-                        }
-                    }
-                }
-            }
+            //         if (this.Grid.HyperDepth > 0)
+            //         {
+            //             for (int j = 0; j < this.Grid.HyperDepth; j++)
+            //             {
+            //                 size += (j.ToString().Length) + 1 + sliceSize;
+            //             }
+            //         }
+            //     }
+            // }
 
-            //TODO: track down missing 8 bytes
-            byte[] data = new byte[size + 8];
+            // //TODO: track down missing 8 bytes
+            // byte[] data = new byte[size + 8];
 
-            this.PushStringAsBytes(ref data, ref counter, "8{" + String.Join(',', this.Grid.Sizes) + "}");
+            // this.PushStringAsBytes(ref data, ref counter, "8{" + String.Join(',', this.Grid.Sizes) + "}");
 
-            int w = 0;
-            int z = 0;
+            // int w = 0;
+            // int z = 0;
 
-            do
-            {
-                do
-                {
-                    //the sizes are stored as ascii instead of raw data in order to allow for large mazes (ie. larger than 255)
-                    this.PushStringAsBytes(ref data, ref counter, $"[{this.Grid.Width}|{this.Grid.Height}]");
-                    //we never do anything with offset (all mazes are cubes/hypercubes/etc.) so we omit it
+            // do
+            // {
+            //     do
+            //     {
+            //         //the sizes are stored as ascii instead of raw data in order to allow for large mazes (ie. larger than 255)
+            //         this.PushStringAsBytes(ref data, ref counter, $"[{this.Grid.Width}|{this.Grid.Height}]");
+            //         //we never do anything with offset (all mazes are cubes/hypercubes/etc.) so we omit it
 
-                    if (this.Grid.Depth > 0)
-                    {
-                        string higherDimCoords = $"\\{z}";
+            //         if (this.Grid.Depth > 0)
+            //         {
+            //             string higherDimCoords = $"\\{z}";
 
-                        if (this.Grid.HyperDepth > 0)
-                        {
-                            higherDimCoords += $"|{w}";
-                        }
+            //             if (this.Grid.HyperDepth > 0)
+            //             {
+            //                 higherDimCoords += $"|{w}";
+            //             }
 
-                        higherDimCoords += "/";
+            //             higherDimCoords += "/";
 
-                        this.PushStringAsBytes(ref data, ref counter, higherDimCoords);
-                    }
+            //             this.PushStringAsBytes(ref data, ref counter, higherDimCoords);
+            //         }
 
-                    this.PushByteArray(ref data, ref counter, DataForHigherDimCoords(z, w));
-                    z++;
-                }
-                while (z < this.Grid.Depth);
+            //         this.PushByteArray(ref data, ref counter, DataForHigherDimCoords(z, w));
+            //         z++;
+            //     }
+            //     while (z < this.Grid.Depth);
 
-                z = 0;
+            //     z = 0;
 
-                w++;
-            }
-            while (w < this.Grid.HyperDepth);
+            //     w++;
+            // }
+            // while (w < this.Grid.HyperDepth);
 
-            string entranceExit = $"+({String.Join(',', this.MazeEntrance)})({String.Join(',', this.MazeExit)})+";
+            // string entranceExit = $"+({String.Join(',', this.MazeEntrance)})({String.Join(',', this.MazeExit)})+";
 
-            this.PushStringAsBytes(ref data, ref counter, entranceExit);
+            // this.PushStringAsBytes(ref data, ref counter, entranceExit);
 
             File.WriteAllBytes(fileName, data);
         }
