@@ -300,7 +300,7 @@ namespace MazeGenerator
 
             this.MazeEntrance.ToList().ForEach(x => this.PushByte(ref data, ref counter, (byte) x));
             this.MazeExit.ToList().ForEach(x => this.PushByte(ref data, ref counter, (byte) x));
-            this.Grid.Grid.ToList().ForEach(x => this.PushByte/*Array*/(ref data, ref counter, (byte) x/*UIntToBytes(x)*/));
+            this.Grid.Grid.ToList().ForEach(x => this.PushByte/*Array*/(ref data, ref counter, (byte) ((x >> 1) & 0b11111111) /*UIntToBytes(x)*/));
 
             this?.Debug($"saving to file {fileName}");
 
